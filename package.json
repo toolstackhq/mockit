@@ -1,0 +1,31 @@
+{
+  "name": "mockit",
+  "version": "0.1.0",
+  "description": "Enterprise REST/gRPC mocking library for banking microservices",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "mock",
+    "rest",
+    "api",
+    "testing",
+    "microservices"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^12.1.0",
+    "json-schema-faker": "^0.6.0",
+    "jsonpath-plus": "^10.4.0"
+  }
+}
