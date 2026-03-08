@@ -1,0 +1,41 @@
+import { describe, it, expect } from 'vitest';
+import { resolve } from 'node:path';
+import { loadConfig } from '../../src/config/config-loader.js';
+
+describe('Config Loader', () => {
+  const fixtureDir = resolve(import.meta.dirname, 'fixtures');
+
+  it('loads mock definitions from a TypeScript config file', async () => {
+    const defs = await loadConfig(`${fixtureDir}/test-config.ts`);
+    expect(defs).toHaveLength(2);
+  });
+
+  it('sets default priority on loaded mocks', async () => {
+    const defs = await loadConfig(`${fixtureDir}/test-config.ts`);
+    expect(defs[0].priority).toBe('default');
+    expect(defs[1].priority).toBe('default');
+  });
+
+  it('preserves path and method', async () => {
+    const defs = await loadConfig(`${fixtureDir}/test-config.ts`);
+    expect(defs[0].path).toBe('/api/users');
+    expect(defs[0].method).toBe('GET');
+  });
+
+  it('preserves response', async () => {
+    const defs = await loadConfig(`${fixtureDir}/test-config.ts`);
+    expect(defs[0].response.status).toBe(200);
+    expect(defs[0].response.body).toEqual([{ id: 1, name: 'Default User' }]);
+  });
+
+  it('loads header matchers', async () => {
+    const defs = await loadConfig(`${fixtureDir}/test-config.ts`);
+    const def = defs[1];
+    expect(def.headerMatchers.has('authorization')).toBe(true);
+    expect(def.headerMatchers.get('authorization')!.match('Bearer token')).toBe(true);
+  });
+
+  it('throws for non-existent config', async () => {
+    await expect(loadConfig('/nonexistent/config.ts')).rejects.toThrow();
+  });
+});
