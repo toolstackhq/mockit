@@ -1,0 +1,17 @@
+openapi: 3.0.0
+info:
+  title: Fallback Status API
+  version: 1.0.0
+paths:
+  /teapot:
+    get:
+      responses:
+        "418":
+          description: Teapot
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string

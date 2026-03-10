@@ -205,11 +205,107 @@ describe('MockRegistry', () => {
       const mock = new MockDefinition('/api/users');
       registry.add(mock);
 
-      registry.resolve(makeRequest());
-      registry.resolve(makeRequest());
+      const first = registry.resolveDetailed(makeRequest());
+      const second = registry.resolveDetailed(makeRequest());
+      registry.recordMatched(makeRequest(), first.mock!, first.response!);
+      registry.recordMatched(makeRequest(), second.mock!, second.response!);
 
       expect(mock.callCount).toBe(2);
       expect(mock.calls).toHaveLength(2);
+    });
+  });
+
+  describe('lifecycle controls', () => {
+    it('does not resolve exhausted mocks', () => {
+      const mock = new MockDefinition('/api/users');
+      mock.remainingUses = 1;
+      registry.add(mock);
+
+      expect(registry.resolve(makeRequest())).not.toBeNull();
+      expect(registry.resolve(makeRequest())).toBeNull();
+    });
+
+    it('tracks pending mocks for finite expectations', () => {
+      const mock = new MockDefinition('/api/users');
+      mock.remainingUses = 2;
+      registry.add(mock);
+
+      expect(registry.pendingMocks()).toHaveLength(1);
+      registry.resolve(makeRequest());
+      expect(registry.pendingMocks()).toHaveLength(1);
+      registry.resolve(makeRequest());
+      expect(registry.pendingMocks()).toHaveLength(0);
+    });
+
+    it('uses sequential responses in order and then sticks on the last reply', () => {
+      const mock = new MockDefinition('/api/retry');
+      mock.response = { status: 500, headers: {}, body: { retry: true } };
+      mock.addSequenceResponse({ status: 200, headers: {}, body: { ok: true } });
+      registry.add(mock);
+
+      const first = registry.resolveDetailed(makeRequest({ path: '/api/retry' }));
+      const second = registry.resolveDetailed(makeRequest({ path: '/api/retry' }));
+      const third = registry.resolveDetailed(makeRequest({ path: '/api/retry' }));
+
+      expect(first.response!.status).toBe(500);
+      expect(second.response!.status).toBe(200);
+      expect(third.response!.status).toBe(200);
+    });
+  });
+
+  describe('near misses and journal', () => {
+    it('returns near misses for unmatched requests', () => {
+      const mock = new MockDefinition('/api/users');
+      mock.method = 'POST';
+      mock.headerMatchers.set('authorization', startsWith('Bearer'));
+      registry.add(mock);
+
+      const result = registry.resolveDetailed(makeRequest({
+        method: 'GET',
+        headers: { authorization: 'Basic abc' },
+      }));
+
+      expect(result.mock).toBeNull();
+      expect(result.nearMisses).toHaveLength(1);
+      expect(result.nearMisses[0].reasons.join(' ')).toContain('method mismatch');
+      expect(result.nearMisses[0].reasons.join(' ')).toContain('header mismatch');
+    });
+
+    it('records unmatched and proxied requests in the journal', () => {
+      const request = makeRequest({ path: '/api/unknown' });
+      registry.recordUnmatched(request, []);
+      registry.recordProxied(request, 200, []);
+
+      const journal = registry.listRequests();
+      expect(journal).toHaveLength(2);
+      expect(journal[0].matched).toBe(false);
+      expect(journal[0].proxied).toBe(false);
+      expect(journal[1].proxied).toBe(true);
+
+      expect(registry.listUnmatchedRequests()).toHaveLength(2);
+      registry.clearJournal();
+      expect(registry.listRequests()).toHaveLength(0);
+    });
+
+    it('records proxied responses as reusable default mocks', () => {
+      const request = makeRequest({
+        method: 'GET',
+        path: '/api/users',
+        query: { tenant: 'bank-a' },
+      });
+
+      const recorded = registry.recordProxyMock(request, {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+        body: [{ id: 1 }],
+      });
+
+      expect(recorded.priority).toBe('default');
+      expect(recorded.queryMatchers.get('tenant')!.match('bank-a')).toBe(true);
+      expect(registry.resolve(makeRequest({
+        path: '/api/users',
+        query: { tenant: 'bank-a' },
+      }))).toBe(recorded);
     });
   });
 

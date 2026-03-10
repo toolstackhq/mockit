@@ -54,6 +54,12 @@ describe('Swagger Loader', () => {
       expect(createPet).toBeDefined();
       expect(createPet!.response.status).toBe(201);
     });
+
+    it('falls back to the first available status when no success status exists', async () => {
+      const fallbackSpecPath = resolve(import.meta.dirname, 'fixtures/fallback-status.yaml');
+      const defs = await loadSwaggerMocks(fallbackSpecPath);
+      expect(defs[0].response.status).toBe(418);
+    });
   });
 
   describe('schemaToMockValue', () => {
@@ -98,6 +104,20 @@ describe('Swagger Loader', () => {
 
     it('uses enum first value', () => {
       expect(schemaToMockValue({ type: 'string', enum: ['active', 'inactive'] })).toBe('active');
+    });
+
+    it('generates additional string formats', () => {
+      expect(schemaToMockValue({ type: 'string', format: 'date' })).toBe('2024-01-15');
+      expect(schemaToMockValue({ type: 'string', format: 'date-time' })).toBe('2024-01-15T10:30:00Z');
+      expect(schemaToMockValue({ type: 'string', format: 'uuid' })).toBe('550e8400-e29b-41d4-a716-446655440000');
+      expect(schemaToMockValue({ type: 'string', format: 'uri' })).toBe('https://example.com');
+    });
+
+    it('uses numeric bounds and null fallbacks', () => {
+      expect(schemaToMockValue({ type: 'number', minimum: 3 })).toBe(3);
+      expect(schemaToMockValue({ type: 'number', maximum: 9 })).toBe(9);
+      expect(schemaToMockValue({ type: 'array' })).toEqual([]);
+      expect(schemaToMockValue({})).toBeNull();
     });
   });
 });

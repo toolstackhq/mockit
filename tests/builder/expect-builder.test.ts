@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
+import { resolve } from 'node:path';
 import { ExpectBuilder } from '../../src/builder/expect-builder.js';
 import { MockDefinition } from '../../src/core/mock-definition.js';
 import { equals, startsWith } from '../../src/matchers/string-matchers.js';
 import { greaterThan } from '../../src/matchers/number-matchers.js';
+import { any } from '../../src/matchers/index.js';
 
 describe('ExpectBuilder', () => {
   function buildMock(fn: (b: ExpectBuilder) => void): MockDefinition {
@@ -108,6 +110,67 @@ describe('ExpectBuilder', () => {
     expect(captured!.response.delayRange).toEqual({ min: 50, max: 100 });
     expect(captured!.response.template).toBe(true);
     expect(captured!.response.fault).toBe('empty-response');
+  });
+
+  it('supports finite-use and optional lifecycle flags', () => {
+    let captured: MockDefinition | undefined;
+    const builder = new ExpectBuilder('/api/lifecycle', (def) => { captured = def; });
+
+    builder.returns(200).times(2).optionally();
+
+    expect(captured!.remainingUses).toBe(2);
+    expect(captured!.optional).toBe(true);
+    expect(captured!.persisted).toBe(false);
+  });
+
+  it('supports persist and once helpers', () => {
+    const persisted = buildMock(b => b.returns(200).persist());
+    const once = buildMock(b => b.returns(201).once());
+
+    expect(persisted.persisted).toBe(true);
+    expect(persisted.remainingUses).toBeUndefined();
+    expect(once.remainingUses).toBe(1);
+  });
+
+  it('supports sequential replies', () => {
+    let captured: MockDefinition | undefined;
+    const builder = new ExpectBuilder('/api/retry', (def) => { captured = def; });
+
+    builder
+      .returns(500)
+      .withBody({ error: 'retry' })
+      .thenReply(200)
+      .withBody({ ok: true });
+
+    expect(captured!.response.status).toBe(500);
+    expect(captured!.responseSequence).toHaveLength(1);
+    expect(captured!.responseSequence[0].status).toBe(200);
+    expect(captured!.responseSequence[0].body).toEqual({ ok: true });
+  });
+
+  it('loads response bodies from files and can override status on the active reply', () => {
+    let captured: MockDefinition | undefined;
+    const builder = new ExpectBuilder('/api/file', (def) => { captured = def; });
+
+    builder
+      .returns(200)
+      .withBodyFromFile(resolve(import.meta.dirname, 'fixtures/body.json'))
+      .thenReply(202)
+      .withStatus(204)
+      .withBody({ accepted: true });
+
+    expect(captured!.response.body).toEqual({ loaded: true, source: 'fixture' });
+    expect(captured!.responseSequence[0].status).toBe(204);
+    expect(captured!.responseSequence[0].body).toEqual({ accepted: true });
+  });
+
+  it('supports replySequence helper and generic any matcher export', () => {
+    const def = buildMock((b) => {
+      b.matchHeader('x-any', any()).returns(200).replySequence(202, 204);
+    });
+
+    expect(def.headerMatchers.get('x-any')!.match('whatever')).toBe(true);
+    expect(def.responseSequence.map((response) => response.status)).toEqual([202, 204]);
   });
 
   it('exposes invocation state through ResponseBuilder and MockDefinition', () => {

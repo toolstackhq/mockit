@@ -152,7 +152,9 @@ describe('Dashboard', () => {
       server.expect('/api/items')
         .method('DELETE')
         .matchHeader('x-api-key', equals('secret'))
-        .returns(204);
+        .returns(204)
+        .once()
+        .optionally();
 
       const res = await fetch(`${server.address}/_mockit/api/mocks`);
       const json = await res.json();
@@ -162,6 +164,8 @@ describe('Dashboard', () => {
       expect(json[0].priority).toBe('override');
       expect(json[0].response.status).toBe(204);
       expect(json[0].matchers.headers['x-api-key']).toBe("equals('secret')");
+      expect(json[0].remainingUses).toBe(1);
+      expect(json[0].optional).toBe(true);
     });
 
     it('tracks call count in JSON', async () => {

@@ -4,6 +4,7 @@ import { equals, startsWith } from '../../src/matchers/string-matchers.js';
 
 describe('MockServer', () => {
   let server: MockServer;
+  const nativeFetch = globalThis.fetch;
 
   beforeEach(async () => {
     server = new MockServer({ port: 0 });
@@ -11,6 +12,7 @@ describe('MockServer', () => {
 
   afterEach(async () => {
     await server.stop();
+    globalThis.fetch = nativeFetch;
   });
 
   it('starts and stops without error', async () => {
@@ -254,5 +256,128 @@ describe('MockServer', () => {
   it('throws if started twice', async () => {
     await server.start();
     await expect(server.start()).rejects.toThrow('already running');
+  });
+
+  it('supports one-shot mocks with pending expectations', async () => {
+    server.expect('/api/once')
+      .method('GET')
+      .returns(200)
+      .withBody({ ok: true })
+      .once();
+
+    await server.start();
+
+    expect(server.pendingMocks()).toHaveLength(1);
+
+    const first = await fetch(`${server.address}/api/once`);
+    expect(first.status).toBe(200);
+    expect(server.isDone()).toBe(true);
+
+    const second = await fetch(`${server.address}/api/once`);
+    expect(second.status).toBe(501);
+  });
+
+  it('supports sequential replies for retry flows', async () => {
+    server.expect('/api/retry')
+      .method('GET')
+      .returns(500)
+      .withBody({ error: 'retry' })
+      .thenReply(200)
+      .withBody({ ok: true });
+
+    await server.start();
+
+    const first = await fetch(`${server.address}/api/retry`);
+    const second = await fetch(`${server.address}/api/retry`);
+
+    expect(first.status).toBe(500);
+    expect(await first.json()).toEqual({ error: 'retry' });
+    expect(second.status).toBe(200);
+    expect(await second.json()).toEqual({ ok: true });
+  });
+
+  it('exposes request journal endpoints and clear semantics', async () => {
+    server.expect('/api/journal')
+      .method('GET')
+      .returns(200)
+      .withBody({ ok: true });
+
+    await server.start();
+    await fetch(`${server.address}/api/journal`);
+    await fetch(`${server.address}/api/unknown`);
+
+    const requestsRes = await fetch(`${server.address}/_mockit/api/requests`);
+    const unmatchedRes = await fetch(`${server.address}/_mockit/api/unmatched`);
+    const pendingRes = await fetch(`${server.address}/_mockit/api/pending`);
+
+    const requests = await requestsRes.json();
+    const unmatched = await unmatchedRes.json();
+    const pending = await pendingRes.json();
+
+    expect(requests).toHaveLength(2);
+    expect(unmatched).toHaveLength(1);
+    expect(unmatched[0].nearMisses).toBeDefined();
+    expect(pending).toHaveLength(0);
+
+    const clearRes = await fetch(`${server.address}/_mockit/api/journal`, { method: 'DELETE' });
+    expect(clearRes.status).toBe(204);
+    expect(server.listRequests()).toHaveLength(0);
+  });
+
+  it('returns near-miss diagnostics for unmatched requests', async () => {
+    server.expect('/api/secure')
+      .method('POST')
+      .matchHeader('Authorization', startsWith('Bearer'))
+      .returns(200)
+      .withBody({ ok: true });
+
+    await server.start();
+    const res = await fetch(`${server.address}/api/secure`);
+
+    expect(res.status).toBe(501);
+    const body = await res.json();
+    expect(body.nearMisses).toHaveLength(1);
+    expect(body.nearMisses[0].reasons.join(' ')).toContain('method mismatch');
+  });
+
+  it('proxies and records unhandled requests using the configured fetch path', async () => {
+    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      expect(url).toBe('http://upstream.test/api/proxy-me?tenant=bank-a');
+      expect(init?.method).toBe('GET');
+      return new Response(JSON.stringify({ via: 'proxy' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'X-Upstream': 'yes' },
+      });
+    };
+
+    server.setUnhandledRequests('proxy', 'http://upstream.test', true);
+    await server.start();
+
+    const res = await nativeFetch(`${server.address}/api/proxy-me?tenant=bank-a`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('x-upstream')).toBe('yes');
+    expect(await res.json()).toEqual({ via: 'proxy' });
+    expect(server.listRequests()[0].proxied).toBe(true);
+    expect(server.listMocks().some((mock) => mock.priority === 'default')).toBe(true);
+  });
+
+  it('returns 500 when proxying throws unexpectedly', async () => {
+    globalThis.fetch = async () => {
+      throw new Error('upstream down');
+    };
+
+    server.setUnhandledRequests('proxy', 'http://upstream.test');
+    await server.start();
+
+    const res = await nativeFetch(`${server.address}/api/error`);
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toBe('Internal mock server error');
+  });
+
+  it('loads swagger definitions directly on the server', async () => {
+    await server.loadSwagger(new URL('../swagger/fixtures/petstore.yaml', import.meta.url).pathname);
+    expect(server.listMocks().some((mock) => mock.priority === 'swagger')).toBe(true);
   });
 });
