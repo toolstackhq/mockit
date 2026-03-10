@@ -1,7 +1,7 @@
 import { MockRegistry } from './mock-registry.js';
 import { ExpectBuilder } from '../builder/expect-builder.js';
 import type { MockDefinition } from './mock-definition.js';
-import type { VerifyOptions, VerificationExplanation } from './types.js';
+import type { VerifyOptions, VerificationExplanation, RequestJournalEntry } from './types.js';
 
 export class MockIt {
   protected registry: MockRegistry;
@@ -26,6 +26,26 @@ export class MockIt {
 
   listMocks(): MockDefinition[] {
     return this.registry.listMocks();
+  }
+
+  listRequests(): RequestJournalEntry[] {
+    return this.registry.listRequests();
+  }
+
+  listUnmatchedRequests(): RequestJournalEntry[] {
+    return this.registry.listUnmatchedRequests();
+  }
+
+  clearJournal(): void {
+    this.registry.clearJournal();
+  }
+
+  pendingMocks(): MockDefinition[] {
+    return this.registry.pendingMocks();
+  }
+
+  isDone(): boolean {
+    return this.pendingMocks().length === 0;
   }
 
   verify(path: string, options: VerifyOptions = {}): boolean {

@@ -19,6 +19,8 @@ export interface DelayRange {
 
 export type FaultType = 'connection-reset' | 'empty-response';
 
+export type UnhandledRequestMode = 'fail' | 'passthrough' | 'proxy';
+
 export interface MockResponse {
   status: number;
   headers: Record<string, string>;
@@ -49,8 +51,12 @@ export interface MockDefinitionData {
   queryMatchers: Map<string, Matcher<string>>;
   bodyMatchers: BodyMatcher[];
   response: MockResponse;
+  responseSequence: MockResponse[];
   callCount: number;
   calls: RecordedRequest[];
+  optional: boolean;
+  persisted: boolean;
+  remainingUses?: number;
 }
 
 export interface DefaultMockConfig {
@@ -76,6 +82,15 @@ export interface DefaultMockConfig {
 export interface MockServerOptions {
   port?: number;
   host?: string;
+  onUnhandled?: Extract<UnhandledRequestMode, 'fail' | 'proxy'>;
+  proxyBaseUrl?: string;
+  recordProxiedResponses?: boolean;
+}
+
+export interface HttpInterceptorOptions {
+  onUnhandled?: UnhandledRequestMode;
+  proxyBaseUrl?: string;
+  recordProxiedResponses?: boolean;
 }
 
 export interface VerifyOptions {
@@ -101,4 +116,23 @@ export interface VerificationExplanation {
   matchedMocks: number;
   totalCallCount: number;
   mocks: VerificationEntry[];
+}
+
+export interface NearMiss {
+  id: string;
+  path: string;
+  method?: HttpMethod;
+  priority: MockPriority;
+  score: number;
+  reasons: string[];
+}
+
+export interface RequestJournalEntry extends RecordedRequest {
+  matched: boolean;
+  proxied: boolean;
+  mockId?: string;
+  mockPath?: string;
+  mockPriority?: MockPriority;
+  responseStatus?: number;
+  nearMisses: NearMiss[];
 }

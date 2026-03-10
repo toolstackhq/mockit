@@ -420,6 +420,7 @@ export function mocksToJson(mocks: MockDefinition[]): object[] {
       headers: m.response.headers,
       body: m.response.body,
       delay: m.response.delay,
+      sequenceLength: m.responseSequence.length + 1,
     },
     matchers: {
       headers: Object.fromEntries(
@@ -434,5 +435,8 @@ export function mocksToJson(mocks: MockDefinition[]): object[] {
       body: m.bodyMatchers.map(b => ({ jsonPath: b.jsonPath, matcher: b.matcher.name })),
     },
     callCount: m.callCount,
+    optional: m.optional,
+    persisted: m.persisted,
+    remainingUses: m.remainingUses ?? null,
   }));
 }
