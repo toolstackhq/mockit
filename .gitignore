@@ -3,3 +3,5 @@ dist/
 *.js.map
 *.d.ts.map
 .claude/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
