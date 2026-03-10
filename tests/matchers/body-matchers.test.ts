@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { evaluateBodyMatcher } from '../../src/matchers/body-matchers.js';
+import { evaluateBodyMatcher, equalsJson } from '../../src/matchers/body-matchers.js';
 import { equals } from '../../src/matchers/string-matchers.js';
 import { greaterThan } from '../../src/matchers/number-matchers.js';
 
@@ -39,5 +39,11 @@ describe('Body Matchers', () => {
 
   it('matches array element', () => {
     expect(evaluateBodyMatcher(body, '$.tags[0]', equals('admin'))).toBe(true);
+  });
+
+  it('matches full JSON body equality', () => {
+    const matcher = equalsJson({ name: 'John', age: 30 });
+    expect(matcher.match({ age: 30, name: 'John' })).toBe(true);
+    expect(matcher.match({ age: 31, name: 'John' })).toBe(false);
   });
 });

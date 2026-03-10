@@ -26,6 +26,12 @@ function configToDefinition(config: DefaultMockConfig): MockDefinition {
     }
   }
 
+  if (config.matchers?.cookies) {
+    for (const [name, matcher] of Object.entries(config.matchers.cookies)) {
+      def.cookieMatchers.set(name.toLowerCase(), matcher);
+    }
+  }
+
   if (config.matchers?.query) {
     for (const [name, matcher] of Object.entries(config.matchers.query)) {
       def.queryMatchers.set(name, matcher);
@@ -40,6 +46,10 @@ function configToDefinition(config: DefaultMockConfig): MockDefinition {
     status: config.response.status,
     headers: config.response.headers || {},
     body: config.response.body ?? null,
+    delay: config.response.delay,
+    delayRange: config.response.delayRange,
+    template: config.response.template,
+    fault: config.response.fault,
   };
 
   return def;

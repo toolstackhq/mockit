@@ -93,4 +93,83 @@ describe('E2E: HttpInterceptor', () => {
     interceptor.resetOverrides();
     expect(interceptor.listMocks()).toHaveLength(0);
   });
+
+  it('verifies invocation using verify DSL', async () => {
+    interceptor = new HttpInterceptor();
+    interceptor.expect('/api/verify-hit')
+      .method('GET')
+      .returns(200)
+      .withBody({ ok: true });
+
+    interceptor.enable();
+
+    expect(interceptor.verify('/api/verify-hit')).toBe(false);
+    await fetch('http://api.internal/api/verify-hit');
+    expect(interceptor.verify('/api/verify-hit')).toBe(true);
+    expect(interceptor.verifyCount('/api/verify-hit', 1)).toBe(true);
+  });
+
+  it('supports cookie, bearer, and exact-body matching e2e', async () => {
+    interceptor = new HttpInterceptor();
+
+    interceptor.expect('/api/secure-transfer')
+      .method('POST')
+      .matchCookie('session_id', equals('abc123'))
+      .matchBearerToken(startsWith('token-'))
+      .matchBodyEquals({ amount: 100, currency: 'USD' })
+      .returns(200)
+      .withBody({ accepted: true });
+
+    interceptor.enable();
+
+    const res = await fetch('http://api.internal/api/secure-transfer', {
+      method: 'POST',
+      headers: {
+        Cookie: 'session_id=abc123',
+        Authorization: 'Bearer token-qa',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ amount: 100, currency: 'USD' }),
+    });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ accepted: true });
+  });
+
+  it('supports templating and faults e2e', async () => {
+    interceptor = new HttpInterceptor();
+
+    interceptor.expect('/api/template-user')
+      .method('GET')
+      .returns(200)
+      .withBodyTemplate({
+        message: 'Hello {{request.query.name}}',
+        route: '{{request.path}}',
+      });
+
+    interceptor.expect('/api/empty-fault')
+      .method('GET')
+      .returns(200)
+      .withBody({ ignored: true })
+      .withFault('empty-response');
+
+    interceptor.expect('/api/reset-fault')
+      .method('GET')
+      .returns(500)
+      .withFault('connection-reset');
+
+    interceptor.enable();
+
+    const templated = await fetch('http://api.internal/api/template-user?name=QA');
+    expect(await templated.json()).toEqual({
+      message: 'Hello QA',
+      route: '/api/template-user',
+    });
+
+    const empty = await fetch('http://api.internal/api/empty-fault');
+    expect(empty.status).toBe(200);
+    expect(await empty.text()).toBe('');
+
+    await expect(fetch('http://api.internal/api/reset-fault')).rejects.toThrow(/connection reset/i);
+  });
 });

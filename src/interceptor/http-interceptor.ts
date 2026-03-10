@@ -1,4 +1,11 @@
 import { MockIt } from '../core/mock-scope.js';
+import {
+  renderResponseBody,
+  renderResponseHeaders,
+  resolveDelay,
+  type RuntimeRequestContext,
+} from '../core/response-runtime.js';
+import { parseCookies } from '../server/request-handler.js';
 
 type FetchInput = string | URL | Request;
 
@@ -13,26 +20,43 @@ export class HttpInterceptor extends MockIt {
 
     const registry = this.registry;
     globalThis.fetch = async (input: FetchInput, init?: RequestInit): Promise<Response> => {
-      const { method, path, headers, query, body } = await parseInterceptedRequest(input, init);
+      const { method, path, headers, cookies, query, body } = await parseInterceptedRequest(input, init);
+      const requestContext: RuntimeRequestContext = { method, path, headers, cookies, query, body };
 
-      const mock = registry.resolve({ method, path, headers, query, body });
+      const mock = registry.resolve(requestContext);
 
       if (!mock) {
         // Pass through to original fetch if no mock matches
         return this.originalFetch!(input, init);
       }
 
-      if (mock.response.delay) {
-        await new Promise(resolve => setTimeout(resolve, mock.response.delay));
+      if (mock.response.fault === 'connection-reset') {
+        throw new TypeError('MockIt simulated fault: connection reset');
       }
 
-      const responseBody = mock.response.body !== null && mock.response.body !== undefined
-        ? (typeof mock.response.body === 'string' ? mock.response.body : JSON.stringify(mock.response.body))
+      const delay = resolveDelay(mock.response);
+      if (delay !== undefined) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+
+      if (mock.response.fault === 'empty-response') {
+        return new Response(null, {
+          status: mock.response.status,
+          headers: {
+            'Content-Type': 'application/json',
+            ...renderResponseHeaders(mock.response.headers, requestContext),
+          },
+        });
+      }
+
+      const renderedBody = renderResponseBody(mock.response, requestContext);
+      const responseBody = renderedBody !== null && renderedBody !== undefined
+        ? (typeof renderedBody === 'string' ? renderedBody : JSON.stringify(renderedBody))
         : null;
 
       const responseHeaders: Record<string, string> = {
         'Content-Type': 'application/json',
-        ...mock.response.headers,
+        ...renderResponseHeaders(mock.response.headers, requestContext),
       };
 
       return new Response(responseBody, {
@@ -79,6 +103,7 @@ async function parseInterceptedRequest(
   method: string;
   path: string;
   headers: Record<string, string>;
+  cookies: Record<string, string>;
   query: Record<string, string>;
   body: any;
 }> {
@@ -128,9 +153,10 @@ async function parseInterceptedRequest(
   url.searchParams.forEach((value, key) => {
     query[key] = value;
   });
+  const cookies = parseCookies(headers.cookie);
 
   // Use the full path including hostname for URL-based matching
   const path = url.pathname;
 
-  return { method, path, headers, query, body: rawBody };
+  return { method, path, headers, cookies, query, body: rawBody };
 }

@@ -40,12 +40,40 @@ describe('ExpectBuilder', () => {
     expect(def.queryMatchers.has('page')).toBe(true);
   });
 
+  it('adds cookie matchers', () => {
+    const def = buildMock(b =>
+      b.matchCookie('session_id', equals('abc123')).returns(200)
+    );
+    expect(def.cookieMatchers.has('session_id')).toBe(true);
+  });
+
+  it('adds bearer token matcher', () => {
+    const def = buildMock(b =>
+      b.matchBearerToken(startsWith('token-')).returns(200)
+    );
+    const authMatcher = def.headerMatchers.get('authorization');
+    expect(authMatcher).toBeDefined();
+    expect(authMatcher!.match('Bearer token-123')).toBe(true);
+    expect(authMatcher!.match('Bearer wrong')).toBe(false);
+  });
+
   it('adds body matchers', () => {
     const def = buildMock(b =>
       b.matchBody('$.amount', greaterThan(100)).returns(200)
     );
     expect(def.bodyMatchers).toHaveLength(1);
     expect(def.bodyMatchers[0].jsonPath).toBe('$.amount');
+  });
+
+  it('adds exact body equality matcher', () => {
+    const expected = { amount: 100, currency: 'USD' };
+    const def = buildMock(b =>
+      b.matchBodyEquals(expected).returns(200)
+    );
+    expect(def.bodyMatchers).toHaveLength(1);
+    expect(def.bodyMatchers[0].jsonPath).toBe('$');
+    expect(def.bodyMatchers[0].matcher.match(expected)).toBe(true);
+    expect(def.bodyMatchers[0].matcher.match({ amount: 99, currency: 'USD' })).toBe(false);
   });
 
   it('sets response body via ResponseBuilder', () => {
@@ -66,6 +94,42 @@ describe('ExpectBuilder', () => {
     const builder = new ExpectBuilder('/api/slow', (def) => { captured = def; });
     builder.returns(200).withDelay(500);
     expect(captured!.response.delay).toBe(500);
+  });
+
+  it('sets random delay, templated body, and fault', () => {
+    let captured: MockDefinition | undefined;
+    const builder = new ExpectBuilder('/api/runtime', (def) => { captured = def; });
+    builder
+      .returns(200)
+      .withRandomDelay(50, 100)
+      .withBodyTemplate({ message: 'Hello {{request.path}}' })
+      .withFault('empty-response');
+
+    expect(captured!.response.delayRange).toEqual({ min: 50, max: 100 });
+    expect(captured!.response.template).toBe(true);
+    expect(captured!.response.fault).toBe('empty-response');
+  });
+
+  it('exposes invocation state through ResponseBuilder and MockDefinition', () => {
+    let captured: MockDefinition | undefined;
+    const builder = new ExpectBuilder('/api/invoked', (def) => { captured = def; });
+    const responseBuilder = builder.returns(200);
+
+    expect(responseBuilder.isInvoked()).toBe(false);
+    expect(captured!.isInvoked()).toBe(false);
+
+    captured!.recordCall({
+      method: 'GET',
+      path: '/api/invoked',
+      headers: {},
+      cookies: {},
+      query: {},
+      body: null,
+      timestamp: Date.now(),
+    });
+
+    expect(responseBuilder.isInvoked()).toBe(true);
+    expect(captured!.isInvoked()).toBe(true);
   });
 
   it('assigns override priority by default', () => {

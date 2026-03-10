@@ -15,6 +15,7 @@ describe('MockRegistry', () => {
     method: string;
     path: string;
     headers: Record<string, string>;
+    cookies: Record<string, string>;
     query: Record<string, string>;
     body: any;
   }> = {}) {
@@ -22,6 +23,7 @@ describe('MockRegistry', () => {
       method: 'GET',
       path: '/api/users',
       headers: {},
+      cookies: {},
       query: {},
       body: null,
       ...overrides,
@@ -122,6 +124,17 @@ describe('MockRegistry', () => {
       registry.add(mock);
 
       const result = registry.resolve(makeRequest({ query: { page: '1' } }));
+      expect(result).not.toBeNull();
+    });
+  });
+
+  describe('cookie matching', () => {
+    it('matches cookie parameter', () => {
+      const mock = new MockDefinition('/api/users');
+      mock.cookieMatchers.set('session_id', equals('abc123'));
+      registry.add(mock);
+
+      const result = registry.resolve(makeRequest({ cookies: { session_id: 'abc123' } }));
       expect(result).not.toBeNull();
     });
   });

@@ -133,4 +133,90 @@ describe('E2E: MockServer', () => {
     expect(auditMock!.calls[0].body).toEqual({ action: 'login' });
     expect(auditMock!.calls[1].body).toEqual({ action: 'transfer' });
   });
+
+  it('verifies override invocation through verify DSL', async () => {
+    const override = server.expect('/api/verify-hit')
+      .method('GET')
+      .returns(200)
+      .withBody({ ok: true });
+
+    expect(server.verify('/api/verify-hit')).toBe(false);
+    expect(server.verifyNotCalled('/api/verify-hit')).toBe(true);
+
+    await fetch(`${server.address}/api/verify-hit`);
+
+    expect(server.verify('/api/verify-hit')).toBe(true);
+    expect(server.verifyCount('/api/verify-hit', 1)).toBe(true);
+    expect(override.isInvoked()).toBe(true);
+
+    const details = server.explainVerification('/api/verify-hit');
+    expect(details.totalCallCount).toBe(1);
+    expect(details.matchedMocks).toBe(1);
+  });
+
+  it('supports cookie, bearer, and exact-body matching e2e', async () => {
+    server.expect('/api/secure-transfer')
+      .method('POST')
+      .matchCookie('session_id', equals('abc123'))
+      .matchBearerToken(startsWith('token-'))
+      .matchBodyEquals({ amount: 100, currency: 'USD' })
+      .returns(200)
+      .withBody({ accepted: true });
+
+    const res = await fetch(`${server.address}/api/secure-transfer`, {
+      method: 'POST',
+      headers: {
+        Cookie: 'session_id=abc123',
+        Authorization: 'Bearer token-qa',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ amount: 100, currency: 'USD' }),
+    });
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ accepted: true });
+  });
+
+  it('supports templating, random delay, and fault simulation e2e', async () => {
+    server.expect('/api/template-user')
+      .method('GET')
+      .returns(200)
+      .withBodyTemplate({
+        message: 'Hello {{request.query.name}}',
+        route: '{{request.path}}',
+        tenant: '{{request.headers.x-tenant}}',
+      });
+
+    server.expect('/api/delayed')
+      .method('GET')
+      .returns(200)
+      .withRandomDelay(30, 70)
+      .withBody({ ok: true });
+
+    server.expect('/api/empty-fault')
+      .method('GET')
+      .returns(200)
+      .withBody({ ignored: true })
+      .withFault('empty-response');
+
+    const templateRes = await fetch(`${server.address}/api/template-user?name=QA`, {
+      headers: { 'X-Tenant': 'bank-a' },
+    });
+    expect(templateRes.status).toBe(200);
+    expect(await templateRes.json()).toEqual({
+      message: 'Hello QA',
+      route: '/api/template-user',
+      tenant: 'bank-a',
+    });
+
+    const startedAt = Date.now();
+    const delayedRes = await fetch(`${server.address}/api/delayed`);
+    const elapsedMs = Date.now() - startedAt;
+    expect(delayedRes.status).toBe(200);
+    expect(elapsedMs).toBeGreaterThanOrEqual(25);
+
+    const emptyRes = await fetch(`${server.address}/api/empty-fault`);
+    expect(emptyRes.status).toBe(200);
+    expect(await emptyRes.text()).toBe('');
+  });
 });

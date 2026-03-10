@@ -33,6 +33,9 @@ function renderMatchers(mock: MockDefinition): string {
   for (const [name, matcher] of mock.headerMatchers) {
     parts.push(`<span class="matcher-label">header</span> <code>${escapeHtml(name)}</code> ${escapeHtml(matcher.name)}`);
   }
+  for (const [name, matcher] of mock.cookieMatchers) {
+    parts.push(`<span class="matcher-label">cookie</span> <code>${escapeHtml(name)}</code> ${escapeHtml(matcher.name)}`);
+  }
   for (const [name, matcher] of mock.queryMatchers) {
     parts.push(`<span class="matcher-label">query</span> <code>${escapeHtml(name)}</code> ${escapeHtml(matcher.name)}`);
   }
@@ -421,6 +424,9 @@ export function mocksToJson(mocks: MockDefinition[]): object[] {
     matchers: {
       headers: Object.fromEntries(
         [...m.headerMatchers.entries()].map(([k, v]) => [k, v.name])
+      ),
+      cookies: Object.fromEntries(
+        [...m.cookieMatchers.entries()].map(([k, v]) => [k, v.name])
       ),
       query: Object.fromEntries(
         [...m.queryMatchers.entries()].map(([k, v]) => [k, v.name])

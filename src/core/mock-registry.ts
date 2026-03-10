@@ -12,6 +12,7 @@ interface ParsedRequest {
   method: string;
   path: string;
   headers: Record<string, string>;
+  cookies: Record<string, string>;
   query: Record<string, string>;
   body: any;
 }
@@ -62,6 +63,7 @@ export class MockRegistry {
       method: request.method,
       path: request.path,
       headers: request.headers,
+      cookies: request.cookies,
       query: request.query,
       body: request.body,
       timestamp: Date.now(),
@@ -90,6 +92,13 @@ export class MockRegistry {
     // Check & score header matchers
     for (const [name, matcher] of mock.headerMatchers) {
       const value = request.headers[name];
+      if (value === undefined || !matcher.match(value)) return -1;
+      score++;
+    }
+
+    // Check & score cookie matchers
+    for (const [name, matcher] of mock.cookieMatchers) {
+      const value = request.cookies[name];
       if (value === undefined || !matcher.match(value)) return -1;
       score++;
     }

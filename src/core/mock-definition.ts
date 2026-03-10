@@ -7,6 +7,7 @@ export class MockDefinition implements MockDefinitionData {
   method?: HttpMethod;
   priority: MockPriority;
   headerMatchers: Map<string, Matcher<string>>;
+  cookieMatchers: Map<string, Matcher<string>>;
   queryMatchers: Map<string, Matcher<string>>;
   bodyMatchers: BodyMatcher[];
   response: MockResponse;
@@ -18,6 +19,7 @@ export class MockDefinition implements MockDefinitionData {
     this.path = path;
     this.priority = priority;
     this.headerMatchers = new Map();
+    this.cookieMatchers = new Map();
     this.queryMatchers = new Map();
     this.bodyMatchers = [];
     this.response = { status: 200, headers: {}, body: null };
@@ -30,7 +32,15 @@ export class MockDefinition implements MockDefinitionData {
     this.calls.push(request);
   }
 
+  isInvoked(): boolean {
+    return this.callCount > 0;
+  }
+
   get matcherCount(): number {
-    return this.headerMatchers.size + this.queryMatchers.size + this.bodyMatchers.length + (this.method ? 1 : 0);
+    return this.headerMatchers.size
+      + this.cookieMatchers.size
+      + this.queryMatchers.size
+      + this.bodyMatchers.length
+      + (this.method ? 1 : 0);
   }
 }

@@ -1,6 +1,7 @@
 import type { HttpMethod, Matcher } from '../core/types.js';
 import { MockDefinition } from '../core/mock-definition.js';
 import { ResponseBuilder } from './response-builder.js';
+import { equalsJson } from '../matchers/body-matchers.js';
 
 export class ExpectBuilder {
   private definition: MockDefinition;
@@ -19,6 +20,25 @@ export class ExpectBuilder {
     return this;
   }
 
+  matchCookie(name: string, matcher: Matcher<string>): this {
+    this.definition.cookieMatchers.set(name.toLowerCase(), matcher);
+    return this;
+  }
+
+  matchBearerToken(matcher: Matcher<string>): this {
+    return this.matchHeader('authorization', {
+      name: `bearer(${matcher.name})`,
+      match: (value: string) => {
+        const idx = value.indexOf(' ');
+        if (idx <= 0) return false;
+        const scheme = value.slice(0, idx);
+        if (scheme.toLowerCase() !== 'bearer') return false;
+        const token = value.slice(idx + 1).trim();
+        return token.length > 0 && matcher.match(token);
+      },
+    });
+  }
+
   matchQuery(name: string, matcher: Matcher<string>): this {
     this.definition.queryMatchers.set(name, matcher);
     return this;
@@ -27,6 +47,10 @@ export class ExpectBuilder {
   matchBody(jsonPath: string, matcher: Matcher<any>): this {
     this.definition.bodyMatchers.push({ jsonPath, matcher });
     return this;
+  }
+
+  matchBodyEquals(expected: any): this {
+    return this.matchBody('$', equalsJson(expected));
   }
 
   returns(status: number): ResponseBuilder {

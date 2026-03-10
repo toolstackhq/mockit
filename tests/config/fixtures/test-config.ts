@@ -1,5 +1,5 @@
 import { defineDefaults } from '../../../src/config/types.js';
-import { startsWith } from '../../../src/matchers/string-matchers.js';
+import { equals, startsWith } from '../../../src/matchers/string-matchers.js';
 
 export default defineDefaults([
   {
@@ -19,6 +19,19 @@ export default defineDefaults([
     response: {
       status: 200,
       body: { id: 1, name: 'Default User' },
+      delayRange: { min: 10, max: 20 },
+      template: true,
+    },
+  },
+  {
+    path: '/api/cookie-protected',
+    method: 'GET',
+    matchers: {
+      cookies: { session_id: equals('abc123') },
+    },
+    response: {
+      status: 200,
+      body: { ok: true },
     },
   },
 ]);

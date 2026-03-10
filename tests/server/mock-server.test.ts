@@ -127,6 +127,120 @@ describe('MockServer', () => {
     expect(mocks[0].calls).toHaveLength(2);
   });
 
+  it('reports isInvoked for an override mock', async () => {
+    const override = server.expect('/api/invoked')
+      .method('GET')
+      .returns(200)
+      .withBody({ ok: true });
+
+    expect(override.isInvoked()).toBe(false);
+
+    await server.start();
+    await fetch(`${server.address}/api/invoked`);
+
+    expect(override.isInvoked()).toBe(true);
+  });
+
+  it('supports verify DSL and diagnostics', async () => {
+    server.expect('/api/verify')
+      .method('GET')
+      .returns(200)
+      .withBody({ ok: true });
+
+    await server.start();
+    expect(server.verify('/api/verify')).toBe(false);
+    expect(server.verifyNotCalled('/api/verify')).toBe(true);
+
+    await fetch(`${server.address}/api/verify`);
+
+    expect(server.verify('/api/verify')).toBe(true);
+    expect(server.verifyCount('/api/verify', 1)).toBe(true);
+
+    const details = server.explainVerification('/api/verify');
+    expect(details.matchedMocks).toBe(1);
+    expect(details.totalCallCount).toBe(1);
+  });
+
+  it('matches cookies, bearer token, and exact body', async () => {
+    server.expect('/api/cookie')
+      .matchCookie('session_id', equals('abc123'))
+      .returns(200)
+      .withBody({ ok: true });
+
+    server.expect('/api/auth')
+      .matchBearerToken(startsWith('token-'))
+      .returns(200)
+      .withBody({ ok: true });
+
+    server.expect('/api/body-equals')
+      .method('POST')
+      .matchBodyEquals({ amount: 100, currency: 'USD' })
+      .returns(200)
+      .withBody({ ok: true });
+
+    await server.start();
+
+    const cookieRes = await fetch(`${server.address}/api/cookie`, {
+      headers: { Cookie: 'session_id=abc123' },
+    });
+    expect(cookieRes.status).toBe(200);
+
+    const authRes = await fetch(`${server.address}/api/auth`, {
+      headers: { Authorization: 'Bearer token-42' },
+    });
+    expect(authRes.status).toBe(200);
+
+    const bodyRes = await fetch(`${server.address}/api/body-equals`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: 100, currency: 'USD' }),
+    });
+    expect(bodyRes.status).toBe(200);
+  });
+
+  it('renders templated response body', async () => {
+    server.expect('/api/template')
+      .method('GET')
+      .returns(200)
+      .withBodyTemplate({
+        message: 'Hello {{request.query.name}}',
+        route: '{{request.path}}',
+      });
+
+    await server.start();
+    const res = await fetch(`${server.address}/api/template?name=Dev`);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toEqual({
+      message: 'Hello Dev',
+      route: '/api/template',
+    });
+  });
+
+  it('supports random delay and empty-response fault', async () => {
+    server.expect('/api/delay')
+      .returns(200)
+      .withRandomDelay(30, 60)
+      .withBody({ ok: true });
+
+    server.expect('/api/empty')
+      .returns(200)
+      .withBody({ ignored: true })
+      .withFault('empty-response');
+
+    await server.start();
+
+    const start = Date.now();
+    const delayed = await fetch(`${server.address}/api/delay`);
+    const elapsed = Date.now() - start;
+    expect(delayed.status).toBe(200);
+    expect(elapsed).toBeGreaterThanOrEqual(25);
+
+    const empty = await fetch(`${server.address}/api/empty`);
+    expect(empty.status).toBe(200);
+    expect(await empty.text()).toBe('');
+  });
+
   it('resets overrides but keeps defaults', async () => {
     server.expect('/api/users')
       .method('GET')

@@ -11,7 +11,7 @@ export { defineDefaults } from './config/types.js';
 export {
   equals, startsWith, endsWith, contains, regex,
   greaterThan, lessThan, between, equalsNumber,
-  any, bodyPath,
+  any, bodyPath, equalsJson,
 } from './matchers/index.js';
 
 // Types
@@ -25,4 +25,8 @@ export type {
   MockServerOptions,
   Matcher,
   BodyMatcher,
+  FaultType,
+  VerifyOptions,
+  VerificationEntry,
+  VerificationExplanation,
 } from './core/types.js';
