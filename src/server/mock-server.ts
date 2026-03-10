@@ -7,18 +7,28 @@ export class MockServer extends MockIt {
   private server: Server | null = null;
   private port: number;
   private host: string;
+  private onUnhandled: NonNullable<MockServerOptions['onUnhandled']>;
+  private proxyBaseUrl?: string;
+  private recordProxiedResponses: boolean;
 
   constructor(options: MockServerOptions = {}) {
     super();
     this.port = options.port || 0;
     this.host = options.host || '127.0.0.1';
+    this.onUnhandled = options.onUnhandled || 'fail';
+    this.proxyBaseUrl = options.proxyBaseUrl;
+    this.recordProxiedResponses = options.recordProxiedResponses || false;
   }
 
   async start(): Promise<{ port: number; host: string }> {
     if (this.server) throw new Error('Server is already running');
 
     this.server = createServer((req, res) => {
-      handleRequest(req, res, this.registry).catch((err) => {
+      handleRequest(req, res, this.registry, {
+        onUnhandled: this.onUnhandled,
+        proxyBaseUrl: this.proxyBaseUrl,
+        recordProxiedResponses: this.recordProxiedResponses,
+      }).catch((err) => {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Internal mock server error', message: String(err) }));
       });
@@ -50,6 +60,16 @@ export class MockServer extends MockIt {
 
   get address(): string {
     return `http://${this.host}:${this.port}`;
+  }
+
+  setUnhandledRequests(
+    mode: NonNullable<MockServerOptions['onUnhandled']>,
+    proxyBaseUrl?: string,
+    recordProxiedResponses = false,
+  ): void {
+    this.onUnhandled = mode;
+    this.proxyBaseUrl = proxyBaseUrl;
+    this.recordProxiedResponses = recordProxiedResponses;
   }
 
   async loadDefaults(configPath: string): Promise<void> {

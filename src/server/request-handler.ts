@@ -7,21 +7,38 @@ import {
   resolveDelay,
   type RuntimeRequestContext,
 } from '../core/response-runtime.js';
+import { proxyRequest } from '../shared/proxy.js';
+
+export interface RequestHandlerOptions {
+  onUnhandled: 'fail' | 'proxy';
+  proxyBaseUrl?: string;
+  recordProxiedResponses?: boolean;
+}
+
+interface ParsedBody {
+  parsed: any;
+  rawText: string | null;
+}
 
 export async function parseRequestBody(req: IncomingMessage): Promise<any> {
+  const body = await parseRequestBodyDetailed(req);
+  return body.parsed;
+}
+
+export async function parseRequestBodyDetailed(req: IncomingMessage): Promise<ParsedBody> {
   return new Promise((resolve) => {
     const chunks: Buffer[] = [];
     req.on('data', (chunk: Buffer) => chunks.push(chunk));
     req.on('end', () => {
       const raw = Buffer.concat(chunks).toString('utf-8');
-      if (!raw) return resolve(null);
+      if (!raw) return resolve({ parsed: null, rawText: null });
       try {
-        resolve(JSON.parse(raw));
+        resolve({ parsed: JSON.parse(raw), rawText: raw });
       } catch {
-        resolve(raw);
+        resolve({ parsed: raw, rawText: raw });
       }
     });
-    req.on('error', () => resolve(null));
+    req.on('error', () => resolve({ parsed: null, rawText: null }));
   });
 }
 
@@ -79,6 +96,7 @@ export async function handleRequest(
   req: IncomingMessage,
   res: ServerResponse,
   registry: MockRegistry,
+  options: RequestHandlerOptions = { onUnhandled: 'fail' },
 ): Promise<void> {
   const url = req.url || '/';
   const path = parsePath(url);
@@ -98,52 +116,115 @@ export async function handleRequest(
     return;
   }
 
-  const body = await parseRequestBody(req);
+  if (req.method === 'GET' && path === '/_mockit/api/requests') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(registry.listRequests(), null, 2));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/_mockit/api/unmatched') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(registry.listUnmatchedRequests(), null, 2));
+    return;
+  }
+
+  if (req.method === 'GET' && path === '/_mockit/api/pending') {
+    const pending = mocksToJson(registry.pendingMocks());
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(pending, null, 2));
+    return;
+  }
+
+  if (req.method === 'DELETE' && path === '/_mockit/api/journal') {
+    registry.clearJournal();
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
+  const parsedBody = await parseRequestBodyDetailed(req);
   const query = parseQuery(url);
   const headers = flattenHeaders(req.headers as Record<string, string | string[] | undefined>);
   const cookies = parseCookies(headers.cookie);
   const method = req.method || 'GET';
 
-  const requestContext: RuntimeRequestContext = { method, path, headers, cookies, query, body };
-  const mock = registry.resolve(requestContext);
+  const requestContext: RuntimeRequestContext = {
+    method,
+    path,
+    headers,
+    cookies,
+    query,
+    body: parsedBody.parsed,
+  };
+  const resolution = registry.resolveDetailed(requestContext);
+  const mock = resolution.mock;
+  const response = resolution.response;
 
-  if (!mock) {
-    const available = registry.listMocks().map(m =>
-      `  ${m.method || 'ANY'} ${m.path} [${m.priority}]`
-    ).join('\n');
+  if (!mock || !response) {
+    if (options.onUnhandled === 'proxy' && options.proxyBaseUrl) {
+      const proxied = await proxyRequest(options.proxyBaseUrl, {
+        method,
+        path,
+        query,
+        headers,
+        rawBody: parsedBody.rawText,
+      });
+
+      registry.recordProxied(requestContext, proxied.response.status, resolution.nearMisses);
+
+      if (options.recordProxiedResponses) {
+        registry.recordProxyMock(requestContext, proxied.response);
+      }
+
+      res.writeHead(proxied.response.status, proxied.response.headers);
+      if (proxied.response.body !== null && proxied.response.body !== undefined) {
+        res.end(
+          typeof proxied.response.body === 'string'
+            ? proxied.response.body
+            : JSON.stringify(proxied.response.body),
+        );
+      } else {
+        res.end();
+      }
+      return;
+    }
+
+    registry.recordUnmatched(requestContext, resolution.nearMisses);
 
     res.writeHead(501, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
       error: 'No mock matched',
       request: { method, path, query, cookies },
-      availableMocks: available || '(none)',
+      nearMisses: resolution.nearMisses,
     }));
     return;
   }
 
-  if (mock.response.fault === 'connection-reset') {
+  registry.recordMatched(requestContext, mock, response);
+
+  if (response.fault === 'connection-reset') {
     res.destroy();
     return;
   }
 
-  const delay = resolveDelay(mock.response);
+  const delay = resolveDelay(response);
   if (delay !== undefined) {
     await new Promise(resolve => setTimeout(resolve, delay));
   }
 
   const responseHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...renderResponseHeaders(mock.response.headers, requestContext),
+    ...renderResponseHeaders(response.headers, requestContext),
   };
 
-  res.writeHead(mock.response.status, responseHeaders);
+  res.writeHead(response.status, responseHeaders);
 
-  if (mock.response.fault === 'empty-response') {
+  if (response.fault === 'empty-response') {
     res.end();
     return;
   }
 
-  const renderedBody = renderResponseBody(mock.response, requestContext);
+  const renderedBody = renderResponseBody(response, requestContext);
   if (renderedBody !== null && renderedBody !== undefined) {
     const bodyStr = typeof renderedBody === 'string'
       ? renderedBody
