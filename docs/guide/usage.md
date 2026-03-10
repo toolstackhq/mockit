@@ -2,6 +2,11 @@
 
 MockIt is a REST API mocking library for JS/TS applications.
 
+For focused walkthroughs of the new lifecycle, journal, proxy, and E2E patterns, also see:
+
+- `/guide/mvp-features`
+- `/guide/e2e-playwright`
+
 It supports three main ways to supply mock responses:
 
 1. Programmatic mocks (`expect(...).returns(...)`)
@@ -171,6 +176,70 @@ const details = server.explainVerification('/getUser');
 console.log(details.totalCallCount);
 ```
 
+## Lifecycle Controls for E2E Tests
+
+Use finite mocks when a test expects a dependency to be called a specific number of times.
+
+```ts
+import { MockServer } from 'mockit';
+
+const server = new MockServer({ port: 3001 });
+
+server.expect('/api/checkout')
+  .method('POST')
+  .returns(201)
+  .withBody({ orderId: 'ORD-1' })
+  .once();
+
+// First checkout request is mocked.
+// Second checkout request returns 501 because the mock is exhausted.
+```
+
+For retry flows, use sequential replies:
+
+```ts
+server.expect('/api/payment/status')
+  .method('GET')
+  .returns(500)
+  .withBody({ retry: true })
+  .thenReply(200)
+  .withBody({ status: 'approved' });
+
+// Example E2E flow:
+// 1. UI polls payment status.
+// 2. First call gets 500.
+// 3. UI retries.
+// 4. Second call gets 200.
+```
+
+For shared baseline mocks that should never exhaust:
+
+```ts
+server.expect('/api/reference/countries')
+  .method('GET')
+  .returns(200)
+  .withBody([{ code: 'US' }])
+  .persist();
+```
+
+Track pending expectations in assertions:
+
+```ts
+expect(server.pendingMocks()).toHaveLength(1);
+expect(server.isDone()).toBe(false);
+```
+
+Optional mocks do not block `isDone()`:
+
+```ts
+server.expect('/api/analytics')
+  .method('POST')
+  .returns(202)
+  .withBody({ queued: true })
+  .once()
+  .optionally();
+```
+
 ## Alternative Runtime: In-Process Interceptor
 
 Use `HttpInterceptor` when you want to patch `fetch` inside the test process.
@@ -188,6 +257,95 @@ interceptor.expect('/api/users')
 interceptor.enable();
 // fetch(...) calls are intercepted
 interceptor.disable();
+```
+
+This is useful for component tests or Node-based API tests where the app and mock live in the same process.
+
+```ts
+import { HttpInterceptor } from 'mockit';
+
+const interceptor = new HttpInterceptor({ onUnhandled: 'fail' });
+
+beforeEach(() => {
+  interceptor.enable();
+});
+
+afterEach(() => {
+  interceptor.disable();
+  interceptor.resetAll();
+  interceptor.clearJournal();
+});
+
+it('shows retry UI after an upstream failure', async () => {
+  interceptor.expect('/api/orders/123')
+    .method('GET')
+    .returns(500)
+    .withBody({ error: 'temporary' })
+    .thenReply(200)
+    .withBody({ id: 123, status: 'ready' });
+
+  // app code calls fetch('/api/orders/123') twice
+});
+```
+
+## Request Journal and Admin API
+
+Every matched, unmatched, or proxied request is stored in the journal.
+
+In code:
+
+```ts
+const requests = server.listRequests();
+const unmatched = server.listUnmatchedRequests();
+
+expect(requests[0].matched).toBe(true);
+expect(unmatched[0].nearMisses[0].reasons).toContain(
+  'method mismatch: expected POST, got GET'
+);
+
+server.clearJournal();
+```
+
+In server mode, the same data is available over HTTP:
+
+- `GET /_mockit/api/mocks`
+- `GET /_mockit/api/requests`
+- `GET /_mockit/api/unmatched`
+- `GET /_mockit/api/pending`
+- `DELETE /_mockit/api/journal`
+
+This is useful in Playwright/Cypress suites where the test runner wants to inspect mock traffic after a scenario.
+
+## Proxy and Record Mode
+
+Use proxy mode when you want to hit a real upstream once, then keep the response as a reusable default mock.
+
+```ts
+const server = new MockServer({
+  port: 3001,
+  onUnhandled: 'proxy',
+  proxyBaseUrl: 'https://dev-upstream.internal',
+  recordProxiedResponses: true,
+});
+
+await server.start();
+```
+
+Now the flow is:
+
+1. A request hits `mockit`.
+2. If a mock matches, `mockit` serves it.
+3. If nothing matches, `mockit` proxies to `proxyBaseUrl`.
+4. The proxied response is recorded as a default mock for later reuse.
+
+The interceptor supports the same pattern:
+
+```ts
+const interceptor = new HttpInterceptor({
+  onUnhandled: 'proxy',
+  proxyBaseUrl: 'https://dev-upstream.internal',
+  recordProxiedResponses: true,
+});
 ```
 
 ## Dynamic Responses and Fault Simulation

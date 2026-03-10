@@ -15,6 +15,8 @@ export default defineConfig({
     nav: [
       { text: 'Installation', link: '/guide/installation' },
       { text: 'Usage', link: '/guide/usage' },
+      { text: 'MVP Features', link: '/guide/mvp-features' },
+      { text: 'E2E Recipes', link: '/guide/e2e-playwright' },
     ],
     sidebar: {
       '/guide/': [
@@ -23,6 +25,8 @@ export default defineConfig({
           items: [
             { text: 'Installation', link: '/guide/installation' },
             { text: 'Usage', link: '/guide/usage' },
+            { text: 'MVP Features', link: '/guide/mvp-features' },
+            { text: 'E2E Recipes', link: '/guide/e2e-playwright' },
           ],
         },
       ],

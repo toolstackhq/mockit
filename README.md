@@ -26,6 +26,9 @@ Mocks can come from:
 - override-first resolution: `override > default > swagger`
 - request matching by path, method, headers, cookies, query, and JSON body
 - response shaping with body, headers, delay, random delay, templates, and faults
+- lifecycle controls with `once()`, `times(n)`, `persist()`, `optionally()`, and sequential replies
+- request journal APIs for matched, unmatched, pending, and proxied traffic
+- proxy/record mode for capturing upstream responses as reusable mocks
 - verification helpers to assert which mocks were called and how many times
 
 ## Quick Example
@@ -56,4 +59,6 @@ console.log(server.address);
 
 - [Usage docs](./docs/guide/usage.md)
 - [Installation docs](./docs/guide/installation.md)
+- [MVP feature guide](./docs/guide/mvp-features.md)
+- [E2E recipes](./docs/guide/e2e-playwright.md)
 - [Examples](./examples)
