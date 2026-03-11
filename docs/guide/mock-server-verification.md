@@ -27,7 +27,7 @@ Admin endpoints:
 
 If `MockServer` is running as a separate process, a Playwright or external test runner can create overrides over HTTP.
 
-Create an override:
+Raw HTTP:
 
 ```ts
 await fetch('http://127.0.0.1:3001/_mockit/api/overrides', {
@@ -58,6 +58,23 @@ List current overrides:
 ```ts
 const res = await fetch('http://127.0.0.1:3001/_mockit/api/overrides');
 const overrides = await res.json();
+```
+
+Remote DSL:
+
+```ts
+import { RemoteMockServer, equals, startsWith } from '@toolstackhq/mockit';
+
+const remote = new RemoteMockServer('http://127.0.0.1:3001');
+
+await remote.expect('/api/login')
+  .method('POST')
+  .count(1)
+  .matchHeader('x-tenant', equals('bank-a'))
+  .matchBearerToken(startsWith('token-'))
+  .returns(403)
+  .withBody({ message: 'unauthorized' })
+  .apply();
 ```
 
 This is the right pattern when:

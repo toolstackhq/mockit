@@ -2,6 +2,7 @@
 export { MockIt } from './core/mock-scope.js';
 export { MockServer } from './server/mock-server.js';
 export { HttpInterceptor } from './interceptor/http-interceptor.js';
+export { RemoteMockServer } from './remote/remote-mock-server.js';
 export { MockDefinition } from './core/mock-definition.js';
 
 // Config
@@ -33,4 +34,8 @@ export type {
   UnhandledRequestMode,
   RequestJournalEntry,
   NearMiss,
+  RemoteOverrideRequest,
+  RemoteMatcherSpec,
+  RemoteBodyMatcherSpec,
+  RemoteResponseSpec,
 } from './core/types.js';

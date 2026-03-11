@@ -14,6 +14,7 @@ You can use it in two ways:
 
 - from code with `new MockServer(...)`
 - from the CLI with `mockit serve ...`
+- from external tests with `new RemoteMockServer('http://127.0.0.1:3001')`
 
 Use the left sidebar for:
 

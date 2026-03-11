@@ -5,6 +5,8 @@ MockIt has two major features:
 - `MockServer`
 - `HttpInterceptor`
 
+`MockServer` can also be controlled remotely with `RemoteMockServer` when the mock is already running as a separate process.
+
 Both support the same mock definition style:
 
 - programmatic expectations

@@ -17,6 +17,24 @@ server.expect('/api/transfers')
   .withBody({ ok: true });
 ```
 
+Remote override with the same matcher set:
+
+```ts
+import { RemoteMockServer, equals, startsWith, greaterThan } from '@toolstackhq/mockit';
+
+const remote = new RemoteMockServer('http://127.0.0.1:3001');
+
+await remote.expect('/api/transfers')
+  .method('POST')
+  .count(1)
+  .matchHeader('Authorization', startsWith('Bearer'))
+  .matchQuery('tenant', equals('bank-a'))
+  .matchBody('$.amount', greaterThan(1000))
+  .returns(200)
+  .withBody({ ok: true })
+  .apply();
+```
+
 ## Available Expectations
 
 Request matching:
