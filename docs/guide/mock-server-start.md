@@ -1,6 +1,8 @@
 # MockServer Start
 
-## From Code
+`MockServer` can be started in test code or as a standalone process.
+
+## Start From Code
 
 ```ts
 import { MockServer } from '@toolstackhq/mockit';
@@ -17,13 +19,37 @@ Your app must call the mock server address.
 const res = await fetch('http://127.0.0.1:3001/api/users');
 ```
 
-## From CLI
+## Start Standalone From CLI
 
 ```bash
 mockit serve --config ./mock-config.ts --swagger ./openapi.yaml --port 3001 --host 127.0.0.1
 ```
 
 This starts the same `MockServer` runtime as a standalone process.
+
+## Update A Running Standalone Mock
+
+If the standalone mock is already running, tests can update it with `RemoteMockServer`:
+
+```ts
+import { RemoteMockServer } from '@toolstackhq/mockit';
+
+const remote = new RemoteMockServer('http://127.0.0.1:3001');
+
+await remote.expect('/api/login')
+  .method('POST')
+  .count(1)
+  .returns(403)
+  .withBody({ message: 'unauthorized' })
+  .apply();
+```
+
+## Why Use Standalone
+
+- keep the mock running with the app during local development
+- let Playwright or Cypress hit a real mock server
+- let tests override behavior without starting the server themselves
+- give QA or manual testers a stable fake backend even outside automated tests
 
 ## npm Script
 
