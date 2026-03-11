@@ -28,8 +28,23 @@ export default defineConfig({
           text: 'Features',
           items: [
             { text: 'Overview', link: '/guide/features' },
-            { text: 'MockServer', link: '/guide/mock-server' },
-            { text: 'HttpInterceptor', link: '/guide/http-interceptor' },
+          ],
+        },
+        {
+          text: 'MockServer',
+          items: [
+            { text: 'Overview', link: '/guide/mock-server' },
+            { text: 'Start', link: '/guide/mock-server-start' },
+            { text: 'Configure', link: '/guide/mock-server-configure' },
+            { text: 'Expectations', link: '/guide/mock-server-expectations' },
+            { text: 'Verification', link: '/guide/mock-server-verification' },
+            { text: 'Sample', link: '/guide/mock-server-sample' },
+          ],
+        },
+        {
+          text: 'HttpInterceptor',
+          items: [
+            { text: 'Overview', link: '/guide/http-interceptor' },
           ],
         },
       ],
