@@ -34,8 +34,8 @@ export default defineConfig({
           text: 'MockServer',
           items: [
             { text: 'Overview', link: '/guide/mock-server' },
-            { text: 'Start', link: '/guide/mock-server-start' },
             { text: 'Configure', link: '/guide/mock-server-configure' },
+            { text: 'Start', link: '/guide/mock-server-start' },
             { text: 'Expectations', link: '/guide/mock-server-expectations' },
             { text: 'Verification', link: '/guide/mock-server-verification' },
             { text: 'Sample', link: '/guide/mock-server-sample' },
