@@ -38,6 +38,7 @@ export default defineConfig({
             { text: 'Start', link: '/guide/mock-server-start' },
             { text: 'Expectations', link: '/guide/mock-server-expectations' },
             { text: 'Verification', link: '/guide/mock-server-verification' },
+            { text: 'Playwright', link: '/guide/mock-server-playwright' },
             { text: 'Sample', link: '/guide/mock-server-sample' },
           ],
         },
