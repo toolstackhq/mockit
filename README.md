@@ -62,9 +62,6 @@ console.log(server.address);
 
 ## Docs
 
-- [Runtime guide](./docs/guide/runtimes.md)
-- [Usage docs](./docs/guide/usage.md)
 - [Installation docs](./docs/guide/installation.md)
-- [MVP feature guide](./docs/guide/mvp-features.md)
-- [E2E recipes](./docs/guide/e2e-playwright.md)
+- [Usage docs](./docs/guide/usage.md)
 - [Examples](./examples)
