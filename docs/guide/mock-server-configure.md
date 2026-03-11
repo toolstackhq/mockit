@@ -3,7 +3,7 @@
 TypeScript defaults:
 
 ```ts
-import { defineDefaults } from 'mockit';
+import { defineDefaults } from '@toolstackhq/mockit';
 
 export default defineDefaults([
   {

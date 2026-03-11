@@ -3,7 +3,7 @@
 ## Add Expectations
 
 ```ts
-import { MockServer, equals, startsWith, greaterThan } from 'mockit';
+import { MockServer, equals, startsWith, greaterThan } from '@toolstackhq/mockit';
 
 const server = new MockServer({ port: 3001 });
 

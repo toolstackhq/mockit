@@ -39,7 +39,7 @@ Mocks can come from:
 ## Quick Example
 
 ```ts
-import { MockServer, equals } from 'mockit';
+import { MockServer, equals } from '@toolstackhq/mockit';
 
 const server = new MockServer({ port: 3001 });
 

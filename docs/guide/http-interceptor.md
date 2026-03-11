@@ -34,7 +34,7 @@ await interceptor.loadSwagger('./openapi.yaml');
 ## Usage
 
 ```ts
-import { HttpInterceptor } from 'mockit';
+import { HttpInterceptor } from '@toolstackhq/mockit';
 
 const interceptor = new HttpInterceptor({ onUnhandled: 'fail' });
 
@@ -85,7 +85,7 @@ Common methods:
 ## Sample
 
 ```ts
-import { HttpInterceptor } from 'mockit';
+import { HttpInterceptor } from '@toolstackhq/mockit';
 
 const interceptor = new HttpInterceptor({ onUnhandled: 'fail' });
 

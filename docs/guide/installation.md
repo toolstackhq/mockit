@@ -5,19 +5,19 @@ Install MockIt in any JavaScript or TypeScript project.
 ## npm
 
 ```bash
-npm install mockit
+npm install @toolstackhq/mockit
 ```
 
 ## yarn
 
 ```bash
-yarn add mockit
+yarn add @toolstackhq/mockit
 ```
 
 ## pnpm
 
 ```bash
-pnpm add mockit
+pnpm add @toolstackhq/mockit
 ```
 
 ## Import
@@ -31,5 +31,5 @@ import {
   equalsJson,
   startsWith,
   greaterThan,
-} from 'mockit';
+} from '@toolstackhq/mockit';
 ```

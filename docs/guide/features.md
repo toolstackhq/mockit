@@ -16,7 +16,7 @@ Both support the same mock definition style:
 TypeScript defaults:
 
 ```ts
-import { defineDefaults } from 'mockit';
+import { defineDefaults } from '@toolstackhq/mockit';
 
 export default defineDefaults([
   {

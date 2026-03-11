@@ -1,7 +1,7 @@
 # MockServer Start
 
 ```ts
-import { MockServer } from 'mockit';
+import { MockServer } from '@toolstackhq/mockit';
 
 const server = new MockServer({ port: 3001 });
 await server.start();
