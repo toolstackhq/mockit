@@ -220,4 +220,20 @@ describe('ExpectBuilder', () => {
     expect(() => buildMock(b => b.count(-1).returns(200))).toThrow(/non-negative integer/i);
     expect(() => buildMock(b => b.count(1.5).returns(200))).toThrow(/non-negative integer/i);
   });
+
+  it('rejects non-serializable custom matchers', () => {
+    const customMatcher = {
+      name: 'customMatcher()',
+      match: (value: string) => value.startsWith('Bearer '),
+    } as any;
+
+    expect(() => buildMock((b) => b.matchHeader('authorization', customMatcher).returns(200)))
+      .toThrow(/built-in serializable matchers/i);
+    expect(() => buildMock((b) => b.matchQuery('page', customMatcher).returns(200)))
+      .toThrow(/built-in serializable matchers/i);
+    expect(() => buildMock((b) => b.matchBody('$.token', customMatcher).returns(200)))
+      .toThrow(/built-in serializable matchers/i);
+    expect(() => buildMock((b) => b.matchBearerToken(customMatcher).returns(200)))
+      .toThrow(/built-in serializable matchers/i);
+  });
 });

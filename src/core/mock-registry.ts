@@ -1,6 +1,7 @@
 import type { MockPriority, RecordedRequest, RequestJournalEntry, NearMiss, MockResponse } from './types.js';
 import { MockDefinition } from './mock-definition.js';
 import { evaluateBodyMatcher } from '../matchers/body-matchers.js';
+import { equals } from '../matchers/string-matchers.js';
 
 const PRIORITY_ORDER: Record<MockPriority, number> = {
   override: 0,
@@ -182,10 +183,7 @@ export class MockRegistry {
     mock.method = request.method.toUpperCase() as MockDefinition['method'];
     mock.response = response;
     for (const [key, value] of Object.entries(request.query)) {
-      mock.queryMatchers.set(key, {
-        name: `equals('${value}')`,
-        match: (candidate: string) => candidate === value,
-      });
+      mock.queryMatchers.set(key, equals(value));
     }
     this.add(mock);
     return mock;

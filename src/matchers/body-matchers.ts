@@ -19,6 +19,7 @@ export function equalsJson(expected: any): Matcher<any> {
   return {
     name: `equalsJson(${safeStringify(expected)})`,
     match: (value: any) => deepEqual(value, expected),
+    serialize: () => ({ equals: expected }),
   };
 }
 

@@ -5,6 +5,7 @@ export type MockPriority = 'override' | 'default' | 'swagger';
 export interface Matcher<T> {
   name: string;
   match(value: T): boolean;
+  serialize(): RemoteMatcherSpec;
 }
 
 export interface BodyMatcher {
@@ -142,11 +143,15 @@ export interface RemoteMatcherSpec {
   startsWith?: string;
   endsWith?: string;
   contains?: string;
-  regex?: string;
+  regex?: {
+    pattern: string;
+    flags?: string;
+  };
   greaterThan?: number;
   lessThan?: number;
   between?: [number, number];
   any?: boolean;
+  bearerToken?: RemoteMatcherSpec;
 }
 
 export interface RemoteBodyMatcherSpec {

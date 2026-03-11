@@ -30,6 +30,20 @@ Request matching:
 - `matchBody(jsonPath, matcher)`
 - `matchBodyEquals(value)`
 
+Built-in matchers:
+
+- `equals(...)`
+- `startsWith(...)`
+- `endsWith(...)`
+- `contains(...)`
+- `regex(...)`
+- `greaterThan(...)`
+- `lessThan(...)`
+- `between(...)`
+- `any()`
+
+`MockServer`, `HttpInterceptor`, TypeScript defaults, and remote overrides all use this same matcher set.
+
 Response building:
 
 - `returns(status)`

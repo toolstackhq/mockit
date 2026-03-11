@@ -9,5 +9,6 @@ export function any(): Matcher<any> {
   return {
     name: 'any()',
     match: () => true,
+    serialize: () => ({ any: true }),
   };
 }

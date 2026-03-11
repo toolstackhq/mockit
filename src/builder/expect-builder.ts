@@ -2,6 +2,7 @@ import type { HttpMethod, Matcher } from '../core/types.js';
 import { MockDefinition } from '../core/mock-definition.js';
 import { ResponseBuilder } from './response-builder.js';
 import { equalsJson } from '../matchers/body-matchers.js';
+import { assertSerializableMatcher } from '../matchers/serializable-matcher.js';
 
 export class ExpectBuilder {
   private definition: MockDefinition;
@@ -16,35 +17,41 @@ export class ExpectBuilder {
   }
 
   matchHeader(name: string, matcher: Matcher<string>): this {
+    assertSerializableMatcher(matcher, 'matchHeader()');
     this.definition.headerMatchers.set(name.toLowerCase(), matcher);
     return this;
   }
 
   matchCookie(name: string, matcher: Matcher<string>): this {
+    assertSerializableMatcher(matcher, 'matchCookie()');
     this.definition.cookieMatchers.set(name.toLowerCase(), matcher);
     return this;
   }
 
   matchBearerToken(matcher: Matcher<string>): this {
+    const serializable = assertSerializableMatcher(matcher, 'matchBearerToken()');
     return this.matchHeader('authorization', {
-      name: `bearer(${matcher.name})`,
+      name: `bearer(${serializable.name})`,
       match: (value: string) => {
         const idx = value.indexOf(' ');
         if (idx <= 0) return false;
         const scheme = value.slice(0, idx);
         if (scheme.toLowerCase() !== 'bearer') return false;
         const token = value.slice(idx + 1).trim();
-        return token.length > 0 && matcher.match(token);
+        return token.length > 0 && serializable.match(token);
       },
+      serialize: () => ({ bearerToken: serializable.serialize() }),
     });
   }
 
   matchQuery(name: string, matcher: Matcher<string>): this {
+    assertSerializableMatcher(matcher, 'matchQuery()');
     this.definition.queryMatchers.set(name, matcher);
     return this;
   }
 
   matchBody(jsonPath: string, matcher: Matcher<any>): this {
+    assertSerializableMatcher(matcher, 'matchBody()');
     this.definition.bodyMatchers.push({ jsonPath, matcher });
     return this;
   }

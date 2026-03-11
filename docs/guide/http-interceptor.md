@@ -75,6 +75,18 @@ Common methods:
 - `thenReply(...)`
 - `replySequence(...)`
 
+Built-in matchers:
+
+- `equals(...)`
+- `startsWith(...)`
+- `endsWith(...)`
+- `contains(...)`
+- `regex(...)`
+- `greaterThan(...)`
+- `lessThan(...)`
+- `between(...)`
+- `any()`
+
 ## Notes
 
 - `HttpInterceptor` works only inside the current Node process

@@ -90,10 +90,25 @@ function normalizeResponse(response: RemoteResponseSpec) {
 
 function createStringMatcher(spec: RemoteMatcherSpec): Matcher<string> {
   if (spec.any) return any();
+  if (spec.bearerToken) {
+    const tokenMatcher = createStringMatcher(spec.bearerToken);
+    return {
+      name: `bearer(${tokenMatcher.name})`,
+      match: (value: string) => {
+        const idx = value.indexOf(' ');
+        if (idx <= 0) return false;
+        const scheme = value.slice(0, idx);
+        if (scheme.toLowerCase() !== 'bearer') return false;
+        const token = value.slice(idx + 1).trim();
+        return token.length > 0 && tokenMatcher.match(token);
+      },
+      serialize: () => ({ bearerToken: tokenMatcher.serialize() }),
+    };
+  }
   if (spec.startsWith !== undefined) return startsWith(spec.startsWith);
   if (spec.endsWith !== undefined) return endsWith(spec.endsWith);
   if (spec.contains !== undefined) return contains(spec.contains);
-  if (spec.regex !== undefined) return regex(new RegExp(spec.regex));
+  if (spec.regex !== undefined) return regex(new RegExp(spec.regex.pattern, spec.regex.flags));
   if (spec.equals !== undefined) return equals(String(spec.equals));
 
   throw new Error('Unsupported string matcher spec');
@@ -101,10 +116,26 @@ function createStringMatcher(spec: RemoteMatcherSpec): Matcher<string> {
 
 function createValueMatcher(spec: RemoteMatcherSpec): Matcher<any> {
   if (spec.any) return any();
+  if (spec.bearerToken) {
+    const tokenMatcher = createStringMatcher(spec.bearerToken);
+    return {
+      name: `bearer(${tokenMatcher.name})`,
+      match: (value: string) => {
+        if (typeof value !== 'string') return false;
+        const idx = value.indexOf(' ');
+        if (idx <= 0) return false;
+        const scheme = value.slice(0, idx);
+        if (scheme.toLowerCase() !== 'bearer') return false;
+        const token = value.slice(idx + 1).trim();
+        return token.length > 0 && tokenMatcher.match(token);
+      },
+      serialize: () => ({ bearerToken: tokenMatcher.serialize() }),
+    };
+  }
   if (spec.startsWith !== undefined) return startsWith(spec.startsWith);
   if (spec.endsWith !== undefined) return endsWith(spec.endsWith);
   if (spec.contains !== undefined) return contains(spec.contains);
-  if (spec.regex !== undefined) return regex(new RegExp(spec.regex));
+  if (spec.regex !== undefined) return regex(new RegExp(spec.regex.pattern, spec.regex.flags));
   if (spec.greaterThan !== undefined) return greaterThan(spec.greaterThan);
   if (spec.lessThan !== undefined) return lessThan(spec.lessThan);
   if (spec.between !== undefined) return between(spec.between[0], spec.between[1]);

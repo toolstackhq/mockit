@@ -65,3 +65,5 @@ This is the right pattern when:
 - devs start MockIt as part of the local UI stack
 - automation tests need to change API behavior at runtime
 - the test runner does not own the in-memory `MockServer` instance
+
+Remote overrides support the same built-in matchers as local expectations and TypeScript defaults.

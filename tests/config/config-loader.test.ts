@@ -48,4 +48,10 @@ describe('Config Loader', () => {
   it('throws for non-existent config', async () => {
     await expect(loadConfig('/nonexistent/config.ts')).rejects.toThrow();
   });
+
+  it('rejects non-serializable custom matchers in config', async () => {
+    await expect(loadConfig(`${fixtureDir}/invalid-custom-matcher-config.ts`))
+      .rejects
+      .toThrow(/built-in serializable matchers/i);
+  });
 });

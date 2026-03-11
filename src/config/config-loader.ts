@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { DefaultMockConfig } from '../core/types.js';
 import { MockDefinition } from '../core/mock-definition.js';
+import { assertSerializableMatcher } from '../matchers/serializable-matcher.js';
 
 export async function loadConfig(configPath: string): Promise<MockDefinition[]> {
   const absolutePath = resolve(configPath);
@@ -22,23 +23,29 @@ function configToDefinition(config: DefaultMockConfig): MockDefinition {
 
   if (config.matchers?.headers) {
     for (const [name, matcher] of Object.entries(config.matchers.headers)) {
+      assertSerializableMatcher(matcher, 'config.matchers.headers');
       def.headerMatchers.set(name.toLowerCase(), matcher);
     }
   }
 
   if (config.matchers?.cookies) {
     for (const [name, matcher] of Object.entries(config.matchers.cookies)) {
+      assertSerializableMatcher(matcher, 'config.matchers.cookies');
       def.cookieMatchers.set(name.toLowerCase(), matcher);
     }
   }
 
   if (config.matchers?.query) {
     for (const [name, matcher] of Object.entries(config.matchers.query)) {
+      assertSerializableMatcher(matcher, 'config.matchers.query');
       def.queryMatchers.set(name, matcher);
     }
   }
 
   if (config.matchers?.body) {
+    for (const bodyMatcher of config.matchers.body) {
+      assertSerializableMatcher(bodyMatcher.matcher, 'config.matchers.body');
+    }
     def.bodyMatchers.push(...config.matchers.body);
   }
 
