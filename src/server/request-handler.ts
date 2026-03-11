@@ -8,6 +8,7 @@ import {
   type RuntimeRequestContext,
 } from '../core/response-runtime.js';
 import { proxyRequest } from '../shared/proxy.js';
+import { createOverrideDefinition } from './override-api.js';
 
 export interface RequestHandlerOptions {
   onUnhandled: 'fail' | 'proxy';
@@ -116,6 +117,13 @@ export async function handleRequest(
     return;
   }
 
+  if (req.method === 'GET' && path === '/_mockit/api/overrides') {
+    const overrides = mocksToJson(registry.listMocks().filter((mock) => mock.priority === 'override'));
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(overrides, null, 2));
+    return;
+  }
+
   if (req.method === 'GET' && path === '/_mockit/api/requests') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(registry.listRequests(), null, 2));
@@ -143,6 +151,32 @@ export async function handleRequest(
   }
 
   const parsedBody = await parseRequestBodyDetailed(req);
+
+  if (req.method === 'POST' && path === '/_mockit/api/overrides') {
+    try {
+      const mock = createOverrideDefinition(parsedBody.parsed);
+      registry.add(mock);
+
+      const [serialized] = mocksToJson([mock]);
+      res.writeHead(201, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(serialized, null, 2));
+    } catch (error) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        error: 'Invalid override request',
+        message: String(error instanceof Error ? error.message : error),
+      }));
+    }
+    return;
+  }
+
+  if (req.method === 'DELETE' && path === '/_mockit/api/overrides') {
+    registry.clear('override');
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   const query = parseQuery(url);
   const headers = flattenHeaders(req.headers as Record<string, string | string[] | undefined>);
   const cookies = parseCookies(headers.cookie);

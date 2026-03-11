@@ -136,3 +136,46 @@ export interface RequestJournalEntry extends RecordedRequest {
   responseStatus?: number;
   nearMisses: NearMiss[];
 }
+
+export interface RemoteMatcherSpec {
+  equals?: any;
+  startsWith?: string;
+  endsWith?: string;
+  contains?: string;
+  regex?: string;
+  greaterThan?: number;
+  lessThan?: number;
+  between?: [number, number];
+  any?: boolean;
+}
+
+export interface RemoteBodyMatcherSpec {
+  jsonPath: string;
+  matcher: RemoteMatcherSpec;
+}
+
+export interface RemoteResponseSpec {
+  status: number;
+  headers?: Record<string, string>;
+  body?: any;
+  delay?: number;
+  delayRange?: DelayRange;
+  template?: boolean;
+  fault?: FaultType;
+}
+
+export interface RemoteOverrideRequest {
+  path: string;
+  method?: HttpMethod;
+  count?: number;
+  optional?: boolean;
+  matchers?: {
+    headers?: Record<string, RemoteMatcherSpec>;
+    cookies?: Record<string, RemoteMatcherSpec>;
+    query?: Record<string, RemoteMatcherSpec>;
+    body?: RemoteBodyMatcherSpec[];
+    bodyEquals?: any;
+  };
+  response: RemoteResponseSpec;
+  sequence?: RemoteResponseSpec[];
+}

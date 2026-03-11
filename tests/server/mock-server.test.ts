@@ -396,4 +396,139 @@ describe('MockServer', () => {
     await server.loadSwagger(new URL('../swagger/fixtures/petstore.yaml', import.meta.url).pathname);
     expect(server.listMocks().some((mock) => mock.priority === 'swagger')).toBe(true);
   });
+
+  it('allows remote override creation against a running server', async () => {
+    await server.start();
+
+    const createRes = await fetch(`${server.address}/_mockit/api/overrides`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        path: '/api/login',
+        method: 'POST',
+        count: 1,
+        matchers: {
+          headers: {
+            authorization: { startsWith: 'Bearer' },
+          },
+        },
+        response: {
+          status: 403,
+          body: { message: 'unauthorized' },
+        },
+      }),
+    });
+
+    expect(createRes.status).toBe(201);
+
+    const mockRes = await fetch(`${server.address}/api/login`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer abc' },
+    });
+    expect(mockRes.status).toBe(403);
+    expect(await mockRes.json()).toEqual({ message: 'unauthorized' });
+
+    const second = await fetch(`${server.address}/api/login`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer abc' },
+    });
+    expect(second.status).toBe(501);
+  });
+
+  it('lists and clears remote overrides', async () => {
+    await server.start();
+
+    await fetch(`${server.address}/_mockit/api/overrides`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        path: '/api/profile',
+        method: 'GET',
+        response: {
+          status: 200,
+          body: { ok: true },
+        },
+      }),
+    });
+
+    const listRes = await fetch(`${server.address}/_mockit/api/overrides`);
+    expect(listRes.status).toBe(200);
+    const overrides = await listRes.json();
+    expect(overrides).toHaveLength(1);
+    expect(overrides[0].path).toBe('/api/profile');
+
+    const clearRes = await fetch(`${server.address}/_mockit/api/overrides`, {
+      method: 'DELETE',
+    });
+    expect(clearRes.status).toBe(204);
+
+    const afterClear = await fetch(`${server.address}/_mockit/api/overrides`);
+    expect(await afterClear.json()).toHaveLength(0);
+  });
+
+  it('supports remote body and sequence matchers', async () => {
+    await server.start();
+
+    const createRes = await fetch(`${server.address}/_mockit/api/overrides`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        path: '/api/payment',
+        method: 'POST',
+        matchers: {
+          body: [
+            {
+              jsonPath: '$.amount',
+              matcher: { greaterThan: 100 },
+            },
+          ],
+        },
+        response: {
+          status: 500,
+          body: { retry: true },
+        },
+        sequence: [
+          {
+            status: 200,
+            body: { ok: true },
+          },
+        ],
+      }),
+    });
+
+    expect(createRes.status).toBe(201);
+
+    const first = await fetch(`${server.address}/api/payment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: 200 }),
+    });
+    const second = await fetch(`${server.address}/api/payment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: 200 }),
+    });
+
+    expect(first.status).toBe(500);
+    expect(await first.json()).toEqual({ retry: true });
+    expect(second.status).toBe(200);
+    expect(await second.json()).toEqual({ ok: true });
+  });
+
+  it('rejects invalid remote overrides', async () => {
+    await server.start();
+
+    const res = await fetch(`${server.address}/_mockit/api/overrides`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        method: 'GET',
+        response: { status: 200 },
+      }),
+    });
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe('Invalid override request');
+  });
 });

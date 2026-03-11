@@ -23,15 +23,45 @@ Admin endpoints:
 - `GET /_mockit/api/pending`
 - `DELETE /_mockit/api/journal`
 
-## Important Note For Automation Tests
+## Remote Overrides For Automation Tests
 
-If `MockServer` is running as a separate process, a Playwright test cannot call `mockit.expect(...)` directly against that process today.
+If `MockServer` is running as a separate process, a Playwright or external test runner can create overrides over HTTP.
 
-That works only when the test owns the `MockServer` instance in the same Node process.
+Create an override:
 
-For a separately running mock process, the current options are:
+```ts
+await fetch('http://127.0.0.1:3001/_mockit/api/overrides', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    path: '/api/login',
+    method: 'POST',
+    count: 1,
+    response: {
+      status: 403,
+      body: { message: 'unauthorized' },
+    },
+  }),
+});
+```
 
-- start it with defaults or Swagger
-- inspect it through the read-only admin endpoints above
+Clear all overrides:
 
-If remote test-time override is needed, the next feature to add is a write admin API for creating and clearing overrides over HTTP.
+```ts
+await fetch('http://127.0.0.1:3001/_mockit/api/overrides', {
+  method: 'DELETE',
+});
+```
+
+List current overrides:
+
+```ts
+const res = await fetch('http://127.0.0.1:3001/_mockit/api/overrides');
+const overrides = await res.json();
+```
+
+This is the right pattern when:
+
+- devs start MockIt as part of the local UI stack
+- automation tests need to change API behavior at runtime
+- the test runner does not own the in-memory `MockServer` instance
