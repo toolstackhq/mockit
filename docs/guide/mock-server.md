@@ -10,6 +10,11 @@ Best for:
 - frontend development against a fake backend
 - cross-process integration tests
 
+You can use it in two ways:
+
+- from code with `new MockServer(...)`
+- from the CLI with `mockit serve ...`
+
 Use the left sidebar for:
 
 - Start

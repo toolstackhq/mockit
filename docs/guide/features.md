@@ -11,6 +11,14 @@ Both support the same mock definition style:
 - TypeScript defaults via `loadDefaults(...)`
 - OpenAPI mocks via `loadSwagger(...)`
 
+Both can also be used through the CLI:
+
+```bash
+mockit serve --config ./mock-config.ts --swagger ./openapi.yaml --port 3001
+```
+
+That CLI runs the `MockServer` feature as a standalone process.
+
 ## Configuration Sources
 
 TypeScript defaults:

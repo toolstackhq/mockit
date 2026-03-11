@@ -26,3 +26,9 @@ OpenAPI:
 ```ts
 await server.loadSwagger('./openapi.yaml');
 ```
+
+CLI:
+
+```bash
+mockit serve --config ./mock-config.ts --swagger ./openapi.yaml --port 3001
+```

@@ -81,6 +81,7 @@ Common methods:
 - it intercepts `fetch`, not arbitrary browser traffic
 - use `onUnhandled: 'fail'` for strict tests
 - use `MockServer` instead if a browser or another process must hit the mock
+- it is not a standalone process runtime
 
 ## Sample
 
