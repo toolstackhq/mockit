@@ -2,6 +2,8 @@
 
 This page shows how to use MockIt in end-to-end and test-runner flows.
 
+If you are still deciding between `MockServer` and `HttpInterceptor`, read `/guide/runtimes` first.
+
 ## Playwright + MockServer
 
 For browser E2E tests, `MockServer` is the primary runtime because the browser talks to a real HTTP server.

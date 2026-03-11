@@ -4,6 +4,7 @@ MockIt is a REST API mocking library for JS/TS applications.
 
 For focused walkthroughs of the new lifecycle, journal, proxy, and E2E patterns, also see:
 
+- `/guide/runtimes`
 - `/guide/mvp-features`
 - `/guide/e2e-playwright`
 
@@ -14,6 +15,15 @@ It supports three main ways to supply mock responses:
 3. OpenAPI-generated mocks (`loadSwagger(...)`)
 
 The primary runtime is `MockServer`, which your app/test environment can call via HTTP.
+
+## Pick The Runtime First
+
+Before writing mocks, choose the runtime:
+
+- `MockServer`: use this when a browser, frontend app, or another process needs to call a real HTTP endpoint
+- `HttpInterceptor`: use this when the code under test runs in the same Node process and already uses `fetch`
+
+If you are unsure, read `/guide/runtimes` first. That page explains the host behavior, fallback behavior, and best-fit use cases for both runtimes.
 
 ## Who This Is For
 
