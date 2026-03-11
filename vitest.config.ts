@@ -8,7 +8,7 @@ export default defineConfig({
     coverage: {
       provider: 'istanbul',
       include: ['src/**/*.ts'],
-      reporter: ['text', 'json-summary', 'html'],
+      reporter: ['text', 'json-summary', 'html', 'lcov'],
       thresholds: {
         lines: 90,
         functions: 90,

@@ -1,12 +1,36 @@
 {
-  "name": "mockit",
+  "name": "@toolstackhq/mockit",
   "version": "0.1.0",
   "description": "Enterprise REST/gRPC mocking library for banking microservices",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/toolstackhq/mockit.git"
+  },
+  "homepage": "https://github.com/toolstackhq/mockit",
+  "bugs": {
+    "url": "https://github.com/toolstackhq/mockit/issues"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/**",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
+    "prepack": "npm run build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
@@ -21,7 +45,6 @@
     "testing",
     "microservices"
   ],
-  "license": "MIT",
   "devDependencies": {
     "@types/node": "^25.3.5",
     "@vitest/coverage-istanbul": "^4.0.18",
