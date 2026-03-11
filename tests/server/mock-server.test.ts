@@ -261,9 +261,9 @@ describe('MockServer', () => {
   it('supports one-shot mocks with pending expectations', async () => {
     server.expect('/api/once')
       .method('GET')
+      .count(1)
       .returns(200)
-      .withBody({ ok: true })
-      .once();
+      .withBody({ ok: true });
 
     await server.start();
 
@@ -275,6 +275,22 @@ describe('MockServer', () => {
 
     const second = await fetch(`${server.address}/api/once`);
     expect(second.status).toBe(501);
+  });
+
+  it('treats count(0) as unlimited', async () => {
+    server.expect('/api/unlimited')
+      .method('GET')
+      .count(0)
+      .returns(200)
+      .withBody({ ok: true });
+
+    await server.start();
+
+    const first = await fetch(`${server.address}/api/unlimited`);
+    const second = await fetch(`${server.address}/api/unlimited`);
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
   });
 
   it('supports sequential replies for retry flows', async () => {

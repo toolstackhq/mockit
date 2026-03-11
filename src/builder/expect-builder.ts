@@ -53,6 +53,22 @@ export class ExpectBuilder {
     return this.matchBody('$', equalsJson(expected));
   }
 
+  count(expectedCalls: number): this {
+    if (!Number.isInteger(expectedCalls) || expectedCalls < 0) {
+      throw new Error('count() expects a non-negative integer');
+    }
+
+    if (expectedCalls === 0) {
+      this.definition.persisted = true;
+      this.definition.remainingUses = undefined;
+      return this;
+    }
+
+    this.definition.persisted = false;
+    this.definition.remainingUses = expectedCalls;
+    return this;
+  }
+
   returns(status: number): ResponseBuilder {
     this.definition.response.status = status;
     this.onBuild(this.definition);

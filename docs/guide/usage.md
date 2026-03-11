@@ -187,12 +187,22 @@ const server = new MockServer({ port: 3001 });
 
 server.expect('/api/checkout')
   .method('POST')
+  .count(1)
   .returns(201)
-  .withBody({ orderId: 'ORD-1' })
-  .once();
+  .withBody({ orderId: 'ORD-1' });
 
 // First checkout request is mocked.
 // Second checkout request returns 501 because the mock is exhausted.
+```
+
+`count(0)` keeps the mock unlimited:
+
+```ts
+server.expect('/api/reference/countries')
+  .method('GET')
+  .count(0)
+  .returns(200)
+  .withBody([{ code: 'US' }]);
 ```
 
 For retry flows, use sequential replies:

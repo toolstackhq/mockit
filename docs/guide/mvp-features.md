@@ -4,7 +4,7 @@ This page focuses on the new features added in the current MVP pass and the test
 
 ## 1. Finite-Use Mocks
 
-Use `.once()` or `.times(n)` when your test expects a dependency to be called a specific number of times.
+Use `.count(n)` when your test expects a dependency to be called a specific number of times.
 
 ```ts
 import { MockServer } from 'mockit';
@@ -13,9 +13,9 @@ const server = new MockServer({ port: 3001 });
 
 server.expect('/api/checkout')
   .method('POST')
+  .count(1)
   .returns(201)
-  .withBody({ orderId: 'ORD-42' })
-  .once();
+  .withBody({ orderId: 'ORD-42' });
 ```
 
 Why it matters:
@@ -23,6 +23,16 @@ Why it matters:
 - catches accidental duplicate submissions
 - makes retry counts explicit
 - gives you `pendingMocks()` and `isDone()` assertions
+
+`count(0)` means unlimited matches:
+
+```ts
+server.expect('/api/reference/countries')
+  .method('GET')
+  .count(0)
+  .returns(200)
+  .withBody([{ code: 'US' }]);
+```
 
 ## 2. Optional Expectations
 

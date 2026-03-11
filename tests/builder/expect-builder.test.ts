@@ -123,6 +123,16 @@ describe('ExpectBuilder', () => {
     expect(captured!.persisted).toBe(false);
   });
 
+  it('supports count(n) on the expectation builder', () => {
+    const finite = buildMock(b => b.count(3).returns(200));
+    const unlimited = buildMock(b => b.count(0).returns(200));
+
+    expect(finite.remainingUses).toBe(3);
+    expect(finite.persisted).toBe(false);
+    expect(unlimited.remainingUses).toBeUndefined();
+    expect(unlimited.persisted).toBe(true);
+  });
+
   it('supports persist and once helpers', () => {
     const persisted = buildMock(b => b.returns(200).persist());
     const once = buildMock(b => b.returns(201).once());
@@ -204,5 +214,10 @@ describe('ExpectBuilder', () => {
     const def1 = buildMock(b => b.returns(200));
     const def2 = buildMock(b => b.returns(200));
     expect(def1.id).not.toBe(def2.id);
+  });
+
+  it('rejects invalid count values', () => {
+    expect(() => buildMock(b => b.count(-1).returns(200))).toThrow(/non-negative integer/i);
+    expect(() => buildMock(b => b.count(1.5).returns(200))).toThrow(/non-negative integer/i);
   });
 });
