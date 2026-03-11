@@ -14,7 +14,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Installation', link: '/guide/installation' },
-      { text: 'Usage', link: '/guide/usage' },
+      { text: 'Features', link: '/guide/features' },
     ],
     sidebar: {
       '/guide/': [
@@ -22,7 +22,14 @@ export default defineConfig({
           text: 'Documentation',
           items: [
             { text: 'Installation', link: '/guide/installation' },
-            { text: 'Usage', link: '/guide/usage' },
+          ],
+        },
+        {
+          text: 'Features',
+          items: [
+            { text: 'Overview', link: '/guide/features' },
+            { text: 'MockServer', link: '/guide/mock-server' },
+            { text: 'HttpInterceptor', link: '/guide/http-interceptor' },
           ],
         },
       ],

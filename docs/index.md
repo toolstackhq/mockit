@@ -10,8 +10,8 @@ hero:
       text: Installation
       link: /guide/installation
     - theme: alt
-      text: Usage
-      link: /guide/usage
+      text: Features
+      link: /guide/features
 
 features:
   - title: What It Is

@@ -63,5 +63,7 @@ console.log(server.address);
 ## Docs
 
 - [Installation docs](./docs/guide/installation.md)
-- [Usage docs](./docs/guide/usage.md)
+- [Features overview](./docs/guide/features.md)
+- [MockServer](./docs/guide/mock-server.md)
+- [HttpInterceptor](./docs/guide/http-interceptor.md)
 - [Examples](./examples)
