@@ -10,6 +10,8 @@ It can run:
 - as a standalone process with `mockit serve ...`
 - with test-time updates from `RemoteMockServer`
 
+It also includes a built-in dashboard at `/_mockit` for viewing loaded mocks and request activity.
+
 Best for:
 
 - Playwright or Cypress tests

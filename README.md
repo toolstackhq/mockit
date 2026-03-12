@@ -43,6 +43,12 @@ await server.start();
 console.log(server.address); // http://127.0.0.1:3001
 ```
 
+Dashboard:
+
+```txt
+http://127.0.0.1:3001/_mockit
+```
+
 Run a standalone mock from a project script:
 
 ```json

@@ -27,6 +27,19 @@ mockit serve --config ./mock-config.ts --swagger ./openapi.yaml --port 3001 --ho
 
 This starts the same `MockServer` runtime as a standalone process.
 
+Dashboard:
+
+```txt
+http://127.0.0.1:3001/_mockit
+```
+
+Admin APIs:
+
+- `http://127.0.0.1:3001/_mockit/api/mocks`
+- `http://127.0.0.1:3001/_mockit/api/requests`
+- `http://127.0.0.1:3001/_mockit/api/unmatched`
+- `http://127.0.0.1:3001/_mockit/api/pending`
+
 ## Update A Running Standalone Mock
 
 If the standalone mock is already running, tests can update it with `RemoteMockServer`:
