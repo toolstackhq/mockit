@@ -45,7 +45,7 @@ describe('Swagger Loader', () => {
       const defs = await loadSwaggerMocks(specPath);
       const listPets = defs.find(d => d.path === '/pets' && d.method === 'GET');
       expect(listPets).toBeDefined();
-      expect(listPets!.response.body).toEqual([{ id: 1, name: 'Buddy', tag: 'string' }]);
+      expect(listPets!.response.body).toEqual([{ id: 1, name: 'Buddy', tag: 'default-tag' }]);
     });
 
     it('sets correct status codes', async () => {
@@ -68,7 +68,7 @@ describe('Swagger Loader', () => {
     });
 
     it('generates string default', () => {
-      expect(schemaToMockValue({ type: 'string' })).toBe('string');
+      expect(schemaToMockValue({ type: 'string' })).toBe('sample-string');
     });
 
     it('generates email format', () => {
@@ -88,7 +88,7 @@ describe('Swagger Loader', () => {
         type: 'array',
         items: { type: 'string' },
       });
-      expect(result).toEqual(['string']);
+      expect(result).toEqual(['sample-string']);
     });
 
     it('generates object', () => {
@@ -97,9 +97,10 @@ describe('Swagger Loader', () => {
         properties: {
           name: { type: 'string' },
           age: { type: 'integer' },
+          status: { type: 'string' },
         },
       });
-      expect(result).toEqual({ name: 'string', age: 1 });
+      expect(result).toEqual({ name: 'Sample Name', age: 1, status: 'active' });
     });
 
     it('uses enum first value', () => {
@@ -118,6 +119,13 @@ describe('Swagger Loader', () => {
       expect(schemaToMockValue({ type: 'number', maximum: 9 })).toBe(9);
       expect(schemaToMockValue({ type: 'array' })).toEqual([]);
       expect(schemaToMockValue({})).toBeNull();
+    });
+
+    it('uses property names to create more realistic strings', () => {
+      expect(schemaToMockValue({ type: 'string' }, 'tag')).toBe('default-tag');
+      expect(schemaToMockValue({ type: 'string' }, 'currency')).toBe('USD');
+      expect(schemaToMockValue({ type: 'string' }, 'username')).toBe('jane.doe');
+      expect(schemaToMockValue({ type: 'string' }, 'customField')).toBe('sample-custom-field');
     });
   });
 });
