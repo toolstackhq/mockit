@@ -22,6 +22,7 @@ interface ScoredCandidate {
   mock: MockDefinition;
   score: number;
   reasons: string[];
+  order: number;
 }
 
 export interface ResolutionResult {
@@ -61,10 +62,11 @@ export class MockRegistry {
     const candidates: ScoredCandidate[] = [];
     const nearMisses: NearMiss[] = [];
 
-    for (const mock of this.mocks) {
+    for (let index = 0; index < this.mocks.length; index++) {
+      const mock = this.mocks[index];
       const result = this.scoreMock(mock, request);
       if (result.matched) {
-        candidates.push({ mock, score: result.score, reasons: [] });
+        candidates.push({ mock, score: result.score, reasons: [], order: index });
       } else {
         nearMisses.push({
           id: mock.id,
@@ -90,7 +92,9 @@ export class MockRegistry {
     candidates.sort((a, b) => {
       const priorityDiff = PRIORITY_ORDER[a.mock.priority] - PRIORITY_ORDER[b.mock.priority];
       if (priorityDiff !== 0) return priorityDiff;
-      return b.score - a.score;
+      const scoreDiff = b.score - a.score;
+      if (scoreDiff !== 0) return scoreDiff;
+      return b.order - a.order;
     });
 
     const winner = candidates[0].mock;

@@ -134,4 +134,26 @@ describe('RemoteMockServer', () => {
     await remote.resetOverrides();
     expect(await remote.listOverrides()).toHaveLength(0);
   });
+
+  it('uses the most recently added override when path and matcher specificity are identical', async () => {
+    await remote.expect('/pets')
+      .method('GET')
+      .count(8)
+      .returns(200)
+      .withBody([{ name: 'Dante', age: 2 }])
+      .apply();
+
+    let response = await fetch(`${server.address}/pets`);
+    expect(await response.json()).toEqual([{ name: 'Dante', age: 2 }]);
+
+    await remote.expect('/pets')
+      .method('GET')
+      .count(8)
+      .returns(200)
+      .withBody([{ name: 'Tyson', age: 3 }])
+      .apply();
+
+    response = await fetch(`${server.address}/pets`);
+    expect(await response.json()).toEqual([{ name: 'Tyson', age: 3 }]);
+  });
 });
