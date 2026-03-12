@@ -293,6 +293,11 @@ export function renderDashboard(mocks: MockDefinition[]): string {
     margin-bottom: 0.4rem; display: block;
   }
   .res-headers-toggle:hover { color: #737373; }
+  .res-label {
+    color: #737373; font-size: 0.75rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 0.5rem 0 0.25rem;
+  }
   pre.res-body {
     padding: 0.5rem 0.75rem;
     background: #0a0a0a; border: 1px solid #262626; border-radius: 4px;
@@ -372,7 +377,7 @@ async function sendRequest(id, defaultMethod) {
     var elapsed = Math.round(performance.now() - start);
 
     var resText = await res.text();
-    var formatted = resText;
+    var formatted = resText || '(empty body)';
     try { formatted = JSON.stringify(JSON.parse(resText), null, 2); } catch(e) {}
 
     var resHeaders = {};
@@ -382,6 +387,7 @@ async function sendRequest(id, defaultMethod) {
     var html = '<span class="res-status ' + statusClass + '">' + res.status + ' ' + res.statusText + '</span>';
     html += '<span class="res-time">' + elapsed + 'ms</span>';
     html += '<details class="res-headers-toggle"><summary>Response Headers</summary><pre class="res-body">' + escapeH(JSON.stringify(resHeaders, null, 2)) + '</pre></details>';
+    html += '<div class="res-label">Response Body</div>';
     html += '<pre class="res-body">' + escapeH(formatted) + '</pre>';
 
     document.getElementById(id + '-response').innerHTML = html;
