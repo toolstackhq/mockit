@@ -5,6 +5,7 @@ Use `RemoteMockServer` when the app stack already starts MockIt and the Playwrig
 The repo also includes a full working sample:
 
 - `tests/e2e/mock-server-override.spec.ts`
+- `tests/e2e/mock-server-api.spec.ts`
 - `tests/e2e/fixtures/demo-app.html`
 - `tests/e2e/fixtures/demo-mock-config.ts`
 
