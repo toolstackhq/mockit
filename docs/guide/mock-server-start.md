@@ -39,6 +39,7 @@ Admin APIs:
 - `http://127.0.0.1:3001/_mockit/api/requests`
 - `http://127.0.0.1:3001/_mockit/api/unmatched`
 - `http://127.0.0.1:3001/_mockit/api/pending`
+- `http://127.0.0.1:3001/_mockit/api/history`
 
 ## Update A Running Standalone Mock
 

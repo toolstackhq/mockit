@@ -70,7 +70,7 @@ export class RemoteMockServer {
   async resetAll(): Promise<void> {
     await Promise.all([
       this.resetOverrides(),
-      this.clearJournal(),
+      this.clearHistory(),
     ]);
   }
 
@@ -90,8 +90,8 @@ export class RemoteMockServer {
     return this.requestJson('/_mockit/api/unmatched');
   }
 
-  async clearJournal(): Promise<void> {
-    await this.requestVoid('/_mockit/api/journal', { method: 'DELETE' });
+  async clearHistory(): Promise<void> {
+    await this.requestVoid('/_mockit/api/history', { method: 'DELETE' });
   }
 
   async pendingMocks(): Promise<RemoteMockRecord[]> {

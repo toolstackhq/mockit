@@ -335,7 +335,7 @@ describe('MockServer', () => {
     expect(unmatched[0].nearMisses).toBeDefined();
     expect(pending).toHaveLength(0);
 
-    const clearRes = await fetch(`${server.address}/_mockit/api/journal`, { method: 'DELETE' });
+    const clearRes = await fetch(`${server.address}/_mockit/api/history`, { method: 'DELETE' });
     expect(clearRes.status).toBe(204);
     expect(server.listRequests()).toHaveLength(0);
   });

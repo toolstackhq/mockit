@@ -19,7 +19,7 @@ const mockit = new RemoteMockServer('http://127.0.0.1:3001');
 
 test.beforeEach(async () => {
   await mockit.resetOverrides();
-  await mockit.clearJournal();
+  await mockit.clearHistory();
 });
 
 test('shows unauthorized when login API returns 403', async ({ page }) => {
@@ -83,7 +83,7 @@ await mockit.expect('/api/orders/123')
 
 ```ts
 await mockit.resetOverrides();
-await mockit.clearJournal();
+await mockit.clearHistory();
 
 const overrides = await mockit.listOverrides();
 const requests = await mockit.listRequests();

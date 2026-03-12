@@ -130,7 +130,7 @@ export class MockRegistry {
     return this.journal.filter(entry => !entry.matched);
   }
 
-  clearJournal(): void {
+  clearHistory(): void {
     this.journal = [];
   }
 

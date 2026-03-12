@@ -128,7 +128,7 @@ describe('RemoteMockServer', () => {
     const unmatched = await remote.listUnmatchedRequests();
     expect(unmatched).toHaveLength(1);
 
-    await remote.clearJournal();
+    await remote.clearHistory();
     expect(await remote.listRequests()).toHaveLength(0);
 
     await remote.resetOverrides();

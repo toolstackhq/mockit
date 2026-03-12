@@ -283,7 +283,7 @@ describe('MockRegistry', () => {
       expect(journal[1].proxied).toBe(true);
 
       expect(registry.listUnmatchedRequests()).toHaveLength(2);
-      registry.clearJournal();
+      registry.clearHistory();
       expect(registry.listRequests()).toHaveLength(0);
     });
 

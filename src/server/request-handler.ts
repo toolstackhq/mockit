@@ -143,8 +143,8 @@ export async function handleRequest(
     return;
   }
 
-  if (req.method === 'DELETE' && path === '/_mockit/api/journal') {
-    registry.clearJournal();
+  if (req.method === 'DELETE' && path === '/_mockit/api/history') {
+    registry.clearHistory();
     res.writeHead(204);
     res.end();
     return;

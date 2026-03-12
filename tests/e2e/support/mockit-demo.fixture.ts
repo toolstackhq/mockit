@@ -44,5 +44,5 @@ export const test = base.extend<Fixtures>({
 
 test.afterEach(async ({ remoteMock }) => {
   await remoteMock.resetOverrides();
-  await remoteMock.clearJournal();
+  await remoteMock.clearHistory();
 });

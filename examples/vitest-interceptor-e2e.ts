@@ -10,7 +10,7 @@ beforeEach(() => {
 afterEach(() => {
   interceptor.disable();
   interceptor.resetAll();
-  interceptor.clearJournal();
+  interceptor.clearHistory();
 });
 
 it('retries once and then succeeds', async () => {

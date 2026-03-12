@@ -20,7 +20,7 @@ export const test = base.extend<Fixtures>({
 
 test.afterEach(async ({ mockServer }) => {
   mockServer.resetOverrides();
-  mockServer.clearJournal();
+  mockServer.clearHistory();
 });
 
 test('shows retry state before success', async ({ page, mockServer }) => {

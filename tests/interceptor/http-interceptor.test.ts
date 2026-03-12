@@ -241,7 +241,7 @@ describe('HttpInterceptor', () => {
 
     expect(interceptor.listRequests()).toHaveLength(1);
     expect(interceptor.listRequests()[0].matched).toBe(true);
-    interceptor.clearJournal();
+    interceptor.clearHistory();
     expect(interceptor.listRequests()).toHaveLength(0);
   });
 

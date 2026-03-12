@@ -11,7 +11,7 @@ Journal:
 
 - `listRequests()`
 - `listUnmatchedRequests()`
-- `clearJournal()`
+- `clearHistory()`
 - `pendingMocks()`
 - `isDone()`
 
@@ -21,7 +21,7 @@ Admin endpoints:
 - `GET /_mockit/api/requests`
 - `GET /_mockit/api/unmatched`
 - `GET /_mockit/api/pending`
-- `DELETE /_mockit/api/journal`
+- `DELETE /_mockit/api/history`
 
 ## Remote Overrides For Automation Tests
 

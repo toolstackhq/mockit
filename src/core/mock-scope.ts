@@ -36,8 +36,8 @@ export class MockIt {
     return this.registry.listUnmatchedRequests();
   }
 
-  clearJournal(): void {
-    this.registry.clearJournal();
+  clearHistory(): void {
+    this.registry.clearHistory();
   }
 
   pendingMocks(): MockDefinition[] {

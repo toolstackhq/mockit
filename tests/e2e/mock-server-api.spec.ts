@@ -175,6 +175,6 @@ test('exposes remote admin helpers for optional and unlimited overrides', async 
   await request.get(`${mockServer.address}/api/unmatched-path`);
   expect(await remoteMock.listUnmatchedRequests()).toHaveLength(1);
 
-  await remoteMock.clearJournal();
+  await remoteMock.clearHistory();
   expect(await remoteMock.listRequests()).toHaveLength(0);
 });
