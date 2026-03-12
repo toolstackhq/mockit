@@ -2,6 +2,12 @@
 
 Use `RemoteMockServer` when the app stack already starts MockIt and the Playwright test only needs to override behavior.
 
+The repo also includes a full working sample:
+
+- `tests/e2e/mock-server-override.spec.ts`
+- `tests/e2e/fixtures/demo-app.html`
+- `tests/e2e/fixtures/demo-mock-config.ts`
+
 ## Example
 
 ```ts

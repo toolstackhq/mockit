@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MockIt Demo App</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f4efe6;
+      color: #1f2933;
+      margin: 0;
+      padding: 32px 16px;
+    }
+
+    .shell {
+      max-width: 760px;
+      margin: 0 auto;
+      background: #fffdf9;
+      border: 1px solid #d8c9b6;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 12px 30px rgba(49, 35, 18, 0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 28px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: 1px solid #e7dccd;
+      border-radius: 16px;
+      padding: 16px;
+      background: #fff;
+    }
+
+    .value {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 12px 0;
+    }
+
+    .muted {
+      color: #5f6c7b;
+      font-size: 14px;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #c8b8a4;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 15px;
+    }
+
+    button {
+      margin-top: 14px;
+      border: 0;
+      border-radius: 999px;
+      background: #1f6feb;
+      color: white;
+      padding: 10px 16px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .status {
+      min-height: 24px;
+      margin-top: 12px;
+      font-weight: 600;
+    }
+
+    .error {
+      color: #b42318;
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <h1>MockIt Demo App</h1>
+    <p class="muted">A tiny UI for remote override end-to-end tests.</p>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Balance</h2>
+        <p class="muted">Default mock returns 200 AUD.</p>
+        <div class="value" data-testid="balance-value">--</div>
+        <button id="check-balance" type="button">Check balance</button>
+      </article>
+
+      <article class="card">
+        <h2>Login</h2>
+        <form id="login-form">
+          <label for="username">Username</label>
+          <input id="username" name="username" autocomplete="off">
+
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password">
+
+          <button type="submit">Login</button>
+        </form>
+        <div class="status" data-testid="login-status"></div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const balanceValue = document.querySelector('[data-testid="balance-value"]');
+    const loginStatus = document.querySelector('[data-testid="login-status"]');
+
+    async function readJson(response) {
+      try {
+        return await response.json();
+      } catch {
+        return {};
+      }
+    }
+
+    document.getElementById('check-balance').addEventListener('click', async () => {
+      const response = await fetch('/api/balance', { cache: 'no-store' });
+      const body = await readJson(response);
+      balanceValue.textContent = body.balance + ' ' + body.currency;
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const body = await readJson(response);
+      loginStatus.textContent = body.message || 'unknown result';
+      loginStatus.className = response.ok ? 'status' : 'status error';
+    });
+  </script>
+</body>
+</html>
