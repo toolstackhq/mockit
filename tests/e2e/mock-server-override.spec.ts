@@ -20,6 +20,15 @@ test('updates balance in the UI after overriding a running mock', async ({ page,
 });
 
 test('shows invalid username when the running mock is overridden by request body', async ({ page, appUrl, remoteMock }) => {
+  await page.goto(appUrl);
+
+  await page.getByLabel('Username').fill('anna');
+  await page.getByLabel('Password').fill('b');
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  await expect(page.getByTestId('login-status')).toHaveText('logged in');
+  await expect(page.getByTestId('login-status')).not.toHaveClass(/error/);
+
   await remoteMock.expect('/api/login')
     .method('POST')
     .count(1)
@@ -28,7 +37,6 @@ test('shows invalid username when the running mock is overridden by request body
     .withBody({ message: 'invalid username' })
     .apply();
 
-  await page.goto(appUrl);
   await page.getByLabel('Username').fill('john');
   await page.getByLabel('Password').fill('b');
   await page.getByRole('button', { name: 'Login' }).click();
