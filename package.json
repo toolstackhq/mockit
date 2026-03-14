@@ -1,6 +1,6 @@
 {
   "name": "@toolstackhq/mockit",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "REST API mocking for JavaScript and TypeScript projects",
   "license": "MIT",
   "repository": {
