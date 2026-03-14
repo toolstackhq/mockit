@@ -10,7 +10,7 @@ MockIt has two major features:
 | Feature | Use case |
 | --- | --- |
 | `MockServer` | Run a real mock API server for browser tests, frontend dev, and shared local stacks. |
-| `HttpInterceptor` | Intercept `fetch` inside the current Node process without starting a server. |
+| `HttpInterceptor` | Intercept `fetch`, `http`, `https`, and Axios inside the current Node process without starting a server. |
 | `RemoteMockServer` | Change a running standalone mock from a test or external script. |
 | TypeScript defaults | Keep reusable default mock definitions in a typed config file. |
 | OpenAPI / Swagger loading | Generate endpoints and sample responses directly from an API spec. |

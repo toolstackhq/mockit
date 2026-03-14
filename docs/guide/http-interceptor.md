@@ -2,19 +2,21 @@
 
 ## What It Is
 
-`HttpInterceptor` does not start a server. It patches `fetch` inside the current Node process.
+`HttpInterceptor` does not start a server. It intercepts outgoing HTTP calls inside the current Node process.
 
 Simple idea:
 
-- your code calls `fetch(...)`
+- your code calls `fetch(...)`, `http.request(...)`, `https.request(...)`, or a Node client built on top of them
 - MockIt stands in front of that call
 - if the request matches a mock, MockIt returns fake data
 - the real network call does not happen
 
-When MockIt says it "intercepts fetch", it means this function:
+When MockIt says it intercepts in-process traffic, it patches:
 
 ```ts
 globalThis.fetch
+http.request
+https.request
 ```
 
 That is the same function your code uses here:
@@ -23,13 +25,14 @@ That is the same function your code uses here:
 await fetch('https://api.example.com/users');
 ```
 
-After `interceptor.enable()`, MockIt temporarily replaces that `fetch` with its own wrapper.
+After `interceptor.enable()`, MockIt temporarily replaces those request functions with its own wrappers.
 
 Best for:
 
 - Vitest or Jest service tests
 - Node-side integration tests
 - component tests that run in Node
+- Axios-based tests in Node
 
 ## Features
 
@@ -38,6 +41,7 @@ Best for:
 - supports `passthrough`, `fail`, and `proxy` modes for unmatched requests
 - records matched and unmatched requests in the same journal APIs
 - matches by request path, not by base URL or hostname
+- covers Node clients built on `http` / `https`, including Axios in Node
 
 ## Configure
 
@@ -138,26 +142,28 @@ Built-in matchers:
 ## Notes
 
 - `HttpInterceptor` works only inside the current Node process
-- it intercepts `fetch`, not arbitrary browser traffic
-- it intercepts `fetch`, not Axios in Node
+- it intercepts `fetch`, `http`, and `https` in Node
+- that means Axios in Node is intercepted too
+- it does not intercept arbitrary browser traffic from a real page
 - use `onUnhandled: 'fail'` for strict tests
 - use `MockServer` instead if a browser or another process must hit the mock
 - it is not a standalone process runtime
 
-## Fetch Vs Axios
+## What It Covers
 
 Use `HttpInterceptor` for code that calls:
 
 ```ts
 await fetch(...)
+http.request(...)
+https.request(...)
 ```
-
-It does not automatically intercept Axios in Node, because Axios usually uses its own HTTP adapter instead of `fetch`.
 
 So:
 
 - `fetch` in the same Node process: yes
-- Axios in Node: no, not directly
+- `http` / `https` in the same Node process: yes
+- Axios in Node: yes
 - browser traffic from Playwright or Cypress pages: no
 
 If you need to mock Axios or browser traffic, use `MockServer` instead.
