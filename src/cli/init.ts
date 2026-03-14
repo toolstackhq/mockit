@@ -85,7 +85,7 @@ export async function runInit(
   await writeFile(options.outputPath, content, 'utf-8');
 
   console.log(`Created MockIt config: ${options.outputPath}`);
-  console.log(`Start it with: mockit serve --config ${options.outputPath}`);
+  console.log(`Start it with: npx @toolstackhq/mockit serve --config ${options.outputPath}`);
 }
 
 export function initHelpText(): string {

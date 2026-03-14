@@ -1,7 +1,7 @@
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { initHelpText, parseInitArgs, runInit } from '../../src/cli/init.js';
 
 const tempDirs: string[] = [];
@@ -29,13 +29,20 @@ describe('CLI init', () => {
     const dir = await mkdtemp(join(tmpdir(), 'mockit-init-'));
     tempDirs.push(dir);
     const outputPath = join(dir, 'mockit.config.ts');
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
-    await runInit([outputPath]);
+    try {
+      await runInit([outputPath]);
 
-    const content = await readFile(outputPath, 'utf-8');
-    expect(content).toContain("import { defineConfig, startsWith } from '@toolstackhq/mockit';");
-    expect(content).toContain("path: '/api/users'");
-    expect(content).toContain("path: '/api/login'");
+      const content = await readFile(outputPath, 'utf-8');
+      expect(content).toContain("import { defineConfig, startsWith } from '@toolstackhq/mockit';");
+      expect(content).toContain("path: '/api/users'");
+      expect(content).toContain("path: '/api/login'");
+      expect(logSpy).toHaveBeenCalledWith(`Created MockIt config: ${outputPath}`);
+      expect(logSpy).toHaveBeenCalledWith(`Start it with: npx @toolstackhq/mockit serve --config ${outputPath}`);
+    } finally {
+      logSpy.mockRestore();
+    }
   });
 
   it('creates a guided config file from prompts', async () => {
