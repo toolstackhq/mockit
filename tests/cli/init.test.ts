@@ -19,6 +19,8 @@ describe('CLI init', () => {
 
   it('parses force flag and help text', () => {
     expect(parseInitArgs(['--force']).force).toBe(true);
+    expect(parseInitArgs(['--interactive']).mode).toBe('interactive');
+    expect(parseInitArgs(['--default']).mode).toBe('default');
     expect(initHelpText()).toContain('mockit init');
     expect(() => parseInitArgs(['--wat'])).toThrow(/Unknown argument/i);
   });
@@ -34,5 +36,46 @@ describe('CLI init', () => {
     expect(content).toContain("import { defineConfig, startsWith } from '@toolstackhq/mockit';");
     expect(content).toContain("path: '/api/users'");
     expect(content).toContain("path: '/api/login'");
+  });
+
+  it('creates a guided config file from prompts', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'mockit-init-guided-'));
+    tempDirs.push(dir);
+    const outputPath = join(dir, 'mockit.config.ts');
+
+    const answers = [
+      '/api/balance',
+      'GET',
+      '200',
+      '{"balance":200,"currency":"AUD"}',
+      '{"content-type":"application/json"}',
+      'y',
+      '/api/login',
+      'POST',
+      '401',
+      '{"message":"invalid username"}',
+      '',
+      'n',
+    ];
+
+    await runInit([outputPath, '--interactive'], () => ({
+      async ask() {
+        const answer = answers.shift();
+        if (answer === undefined) {
+          throw new Error('No answer left for prompt');
+        }
+        return answer;
+      },
+      close() {},
+    }));
+
+    const content = await readFile(outputPath, 'utf-8');
+    expect(content).toContain("import { defineConfig } from '@toolstackhq/mockit';");
+    expect(content).toContain('path: "/api/balance"');
+    expect(content).toContain('method: "GET"');
+    expect(content).toContain('"currency": "AUD"');
+    expect(content).toContain('"content-type": "application/json"');
+    expect(content).toContain('path: "/api/login"');
+    expect(content).toContain('status: 401');
   });
 });

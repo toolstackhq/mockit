@@ -35,7 +35,12 @@ If you are creating a TypeScript mock config for the first time, generate one:
 npx @toolstackhq/mockit init
 ```
 
-That creates:
+In a terminal, `init` will ask whether you want:
+
+- the default starter config
+- a guided setup that asks for endpoint path, method, status, and JSON response body
+
+The generated file is:
 
 ```txt
 ./mockit.config.ts

@@ -31,11 +31,15 @@ Install:
 npm install @toolstackhq/mockit
 ```
 
-Create a starter TypeScript config:
+Create a TypeScript config:
 
 ```bash
 npx @toolstackhq/mockit init
 ```
+
+In a terminal, `init` can either:
+- write the default starter config
+- ask a few questions and generate endpoints for you
 
 Simple TypeScript usage:
 

@@ -27,7 +27,17 @@ First-time setup:
 npx @toolstackhq/mockit init
 ```
 
-That creates a valid starter `mockit.config.ts` you can edit.
+`init` can write the default starter file or guide you through a few questions to generate your first endpoints.
+
+Guided setup asks for:
+
+- endpoint path
+- HTTP method
+- response status
+- response body JSON
+- optional response headers JSON
+
+It still writes a normal `mockit.config.ts`, so you can keep editing it by hand afterward.
 
 OpenAPI:
 
