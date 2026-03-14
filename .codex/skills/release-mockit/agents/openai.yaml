@@ -1,0 +1,4 @@
+interface:
+  display_name: "Release MockIt"
+  short_description: "Bump, tag, and publish MockIt"
+  default_prompt: "Use $release-mockit to prepare and push the next MockIt release."
