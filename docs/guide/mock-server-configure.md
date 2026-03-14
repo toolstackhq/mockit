@@ -3,9 +3,9 @@
 TypeScript defaults:
 
 ```ts
-import { defineDefaults } from '@toolstackhq/mockit';
+import { defineConfig } from '@toolstackhq/mockit';
 
-export default defineDefaults([
+export default defineConfig([
   {
     path: '/api/users',
     method: 'GET',
@@ -20,6 +20,14 @@ export default defineDefaults([
 ```ts
 await server.loadDefaults('./mock-config.ts');
 ```
+
+First-time setup:
+
+```bash
+npx @toolstackhq/mockit init
+```
+
+That creates a valid starter `mockit.config.ts` you can edit.
 
 OpenAPI:
 

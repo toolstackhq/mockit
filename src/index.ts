@@ -7,6 +7,7 @@ export { MockDefinition } from './core/mock-definition.js';
 
 // Config
 export { defineDefaults } from './config/types.js';
+export { defineConfig } from './config/types.js';
 
 // Matchers
 export {

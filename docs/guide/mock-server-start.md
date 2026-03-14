@@ -27,6 +27,26 @@ mockit serve --config ./mock-config.ts --swagger ./openapi.yaml --port 3001 --ho
 
 This starts the same `MockServer` runtime as a standalone process.
 
+## First-Time Setup
+
+If you are creating a TypeScript mock config for the first time, generate one:
+
+```bash
+npx @toolstackhq/mockit init
+```
+
+That creates:
+
+```txt
+./mockit.config.ts
+```
+
+Then start it with:
+
+```bash
+mockit serve --config ./mockit.config.ts --port 3001
+```
+
 Dashboard:
 
 ```txt

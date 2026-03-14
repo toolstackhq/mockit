@@ -31,18 +31,34 @@ Install:
 npm install @toolstackhq/mockit
 ```
 
+Create a starter TypeScript config:
+
+```bash
+npx @toolstackhq/mockit init
+```
+
 Simple TypeScript usage:
+
+```ts
+import { MockServer, defineConfig } from '@toolstackhq/mockit';
+
+export default defineConfig([
+  {
+    path: '/api/balance',
+    method: 'GET',
+    response: {
+      status: 200,
+      body: { balance: 200, currency: 'AUD' },
+    },
+  },
+]);
+```
 
 ```ts
 import { MockServer } from '@toolstackhq/mockit';
 
 const server = new MockServer({ port: 3001 });
-
-server.expect('/api/balance')
-  .method('GET')
-  .count(0)
-  .returns(200)
-  .withBody({ balance: 200, currency: 'AUD' });
+await server.loadDefaults('./mockit.config.ts');
 
 await server.start();
 
@@ -60,7 +76,7 @@ Run a standalone mock from a project script:
 ```json
 {
   "scripts": {
-    "mockit": "mockit serve --config ./mock-config.ts --port 3001"
+    "mockit": "mockit serve --config ./mockit.config.ts --port 3001"
   }
 }
 ```
