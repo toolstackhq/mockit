@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { initHelpText, runInit } from './cli/init.js';
 import { helpText, runServe } from './cli/serve.js';
 
@@ -69,14 +67,6 @@ function rootHelpText(): string {
   ].join('\n');
 }
 
-function isEntrypoint(moduleUrl: string, entryArg: string | undefined): boolean {
-  if (!entryArg) {
-    return false;
-  }
-
-  return moduleUrl === pathToFileURL(resolve(entryArg)).href;
-}
-
-if (isEntrypoint(import.meta.url, process.argv[1])) {
+if (!(import.meta as ImportMeta & { vitest?: unknown }).vitest) {
   void main();
 }
