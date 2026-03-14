@@ -1,13 +1,13 @@
 import type { MockDefinition } from '../core/mock-definition.js';
 
 const METHOD_COLORS: Record<string, string> = {
-  GET: '#22c55e',
-  POST: '#3b82f6',
-  PUT: '#f59e0b',
-  PATCH: '#a855f7',
-  DELETE: '#ef4444',
-  HEAD: '#6b7280',
-  OPTIONS: '#6b7280',
+  GET: '#137333',
+  POST: '#1967d2',
+  PUT: '#b06000',
+  PATCH: '#6f42c1',
+  DELETE: '#c5221f',
+  HEAD: '#5f6368',
+  OPTIONS: '#5f6368',
 };
 
 function escapeHtml(str: string): string {
@@ -185,130 +185,258 @@ export function renderDashboard(mocks: MockDefinition[]): string {
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', Menlo, monospace;
-    background: #0a0a0a; color: #e5e5e5;
-    padding: 2rem; max-width: 960px; margin: 0 auto;
-    font-size: 14px; line-height: 1.6;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f8f9fa;
+    color: #202124;
+    padding: 32px 24px 40px;
+    max-width: 1080px;
+    margin: 0 auto;
+    font-size: 14px;
+    line-height: 1.6;
   }
-  h1 { font-size: 1.4rem; margin-bottom: 0.25rem; color: #fff; }
-  .subtitle { color: #737373; margin-bottom: 2rem; font-size: 0.85rem; }
-  .stats { display: flex; gap: 1.5rem; margin-bottom: 2rem; }
-  .stat { color: #a3a3a3; }
-  .stat strong { color: #fff; }
-  h2 { font-size: 1rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
-  .count { color: #737373; font-weight: normal; font-size: 0.85rem; }
-  .group { margin-bottom: 2rem; }
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.2rem;
+    color: #202124;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    color: #5f6368;
+    margin-bottom: 24px;
+    font-size: 0.95rem;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .stat {
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid #dadce0;
+    border-radius: 10px;
+    color: #5f6368;
+  }
+  .stat strong {
+    display: block;
+    color: #202124;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+  h2 {
+    font-size: 1rem;
+    margin-bottom: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #202124;
+  }
+  .count { color: #5f6368; font-weight: normal; font-size: 0.85rem; }
+  .group { margin-bottom: 28px; }
   .priority-badge {
-    padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;
-    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
   }
-  .priority-override { background: #7c2d12; color: #fed7aa; }
-  .priority-default { background: #1e3a5f; color: #93c5fd; }
-  .priority-swagger { background: #14532d; color: #86efac; }
+  .priority-override { background: #fce8e6; color: #a50e0e; }
+  .priority-default { background: #e8f0fe; color: #174ea6; }
+  .priority-swagger { background: #e6f4ea; color: #137333; }
   .mock-card {
-    border: 1px solid #262626; border-radius: 6px;
-    padding: 0.75rem 1rem; margin-bottom: 0.5rem;
-    background: #141414;
+    border: 1px solid #dadce0;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(60, 64, 67, 0.08);
   }
-  .mock-card:hover { border-color: #404040; }
-  .mock-header { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+  .mock-card:hover { border-color: #c6cdd5; }
+  .mock-header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .method {
-    padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;
-    font-weight: 700; color: #fff; min-width: 58px; text-align: center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    min-width: 58px;
+    text-align: center;
   }
-  .path { color: #fff; font-weight: 500; }
+  .path { color: #202124; font-weight: 600; }
   .status { margin-left: auto; font-weight: 600; }
-  .status-ok { color: #22c55e; }
-  .status-error { color: #ef4444; }
-  .calls { color: #737373; font-size: 0.8rem; }
-  .matchers { margin-top: 0.5rem; padding-left: 0.25rem; }
-  .matcher-row { color: #a3a3a3; font-size: 0.8rem; margin-bottom: 2px; }
+  .status-ok { color: #137333; }
+  .status-error { color: #c5221f; }
+  .calls { color: #5f6368; font-size: 0.8rem; }
+  .matchers { margin-top: 10px; padding-left: 2px; }
+  .matcher-row { color: #5f6368; font-size: 0.83rem; margin-bottom: 3px; }
   .matcher-label {
-    display: inline-block; padding: 1px 5px; border-radius: 3px;
-    font-size: 0.7rem; background: #262626; color: #a3a3a3; margin-right: 4px;
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    background: #f1f3f4;
+    color: #5f6368;
+    margin-right: 4px;
   }
-  .matcher-row code { color: #c084fc; }
-  details { margin-top: 0.5rem; }
-  summary { cursor: pointer; color: #737373; font-size: 0.8rem; }
-  summary:hover { color: #a3a3a3; }
+  .matcher-row code {
+    color: #174ea6;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; color: #5f6368; font-size: 0.8rem; }
+  summary:hover { color: #202124; }
   pre.body {
-    margin-top: 0.4rem; padding: 0.5rem 0.75rem;
-    background: #0a0a0a; border: 1px solid #262626; border-radius: 4px;
-    font-size: 0.8rem; overflow-x: auto; color: #a3a3a3;
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border: 1px solid #e0e3e7;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    color: #3c4043;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   }
-  .null { color: #737373; font-style: italic; }
-  .delay { margin-top: 0.4rem; color: #f59e0b; font-size: 0.8rem; }
-  .empty { color: #525252; padding: 2rem; text-align: center; }
-  .refresh { color: #525252; font-size: 0.8rem; margin-top: 2rem; text-align: center; }
-  .refresh a { color: #737373; }
+  .null { color: #5f6368; font-style: italic; }
+  .delay { margin-top: 8px; color: #b06000; font-size: 0.8rem; }
+  .empty {
+    color: #5f6368;
+    padding: 36px;
+    text-align: center;
+    background: #fff;
+    border: 1px dashed #dadce0;
+    border-radius: 12px;
+  }
+  .refresh {
+    color: #5f6368;
+    font-size: 0.85rem;
+    margin-top: 28px;
+    text-align: center;
+  }
+  .refresh a { color: #174ea6; text-decoration: none; }
+  .refresh a:hover { text-decoration: underline; }
 
   /* Try it out */
   .try-btn {
-    padding: 2px 10px; border-radius: 4px; border: 1px solid #404040;
-    background: transparent; color: #a3a3a3; font-size: 0.75rem;
-    cursor: pointer; font-family: inherit;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #dadce0;
+    background: #fff;
+    color: #3c4043;
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
   }
-  .try-btn:hover { border-color: #737373; color: #fff; }
+  .try-btn:hover { border-color: #bdc1c6; background: #f8f9fa; }
   .try-panel {
-    display: none; margin-top: 0.75rem; padding: 0.75rem;
-    border: 1px solid #262626; border-radius: 6px; background: #0d0d0d;
+    display: none;
+    margin-top: 12px;
+    padding: 14px;
+    border: 1px solid #e0e3e7;
+    border-radius: 10px;
+    background: #f8f9fa;
   }
   .try-panel.open { display: block; }
-  .try-row { margin-bottom: 0.5rem; }
+  .try-row { margin-bottom: 10px; }
   .try-row label {
-    display: block; font-size: 0.7rem; color: #737373;
-    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;
+    display: block;
+    font-size: 0.7rem;
+    color: #5f6368;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+    font-weight: 600;
   }
   .try-input {
-    width: 100%; padding: 6px 8px; border-radius: 4px;
-    border: 1px solid #262626; background: #141414; color: #e5e5e5;
-    font-family: inherit; font-size: 0.8rem; resize: vertical;
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #dadce0;
+    background: #fff;
+    color: #202124;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.82rem;
+    resize: vertical;
   }
-  .try-input:focus { outline: none; border-color: #3b82f6; }
-  .try-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+  .try-input:focus {
+    outline: none;
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
+  }
+  .try-actions { display: flex; gap: 8px; margin-top: 10px; }
   .send-btn {
-    padding: 5px 16px; border-radius: 4px; border: none;
-    background: #3b82f6; color: #fff; font-size: 0.8rem;
-    cursor: pointer; font-family: inherit; font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid #1a73e8;
+    background: #1a73e8;
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
   }
-  .send-btn:hover { background: #2563eb; }
+  .send-btn:hover { background: #1765cc; }
   .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .clear-btn {
-    padding: 5px 12px; border-radius: 4px; border: 1px solid #333;
-    background: transparent; color: #737373; font-size: 0.8rem;
-    cursor: pointer; font-family: inherit;
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: 1px solid #dadce0;
+    background: #fff;
+    color: #3c4043;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: inherit;
   }
-  .clear-btn:hover { color: #a3a3a3; border-color: #555; }
-  .try-response { margin-top: 0.75rem; }
+  .clear-btn:hover { border-color: #bdc1c6; background: #f1f3f4; }
+  .try-response { margin-top: 12px; }
   .try-response:empty { display: none; }
   .res-status {
-    display: inline-block; padding: 2px 8px; border-radius: 4px;
-    font-size: 0.8rem; font-weight: 700; margin-bottom: 0.4rem;
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 6px;
   }
-  .res-ok { background: #14532d; color: #86efac; }
-  .res-err { background: #7c2d12; color: #fed7aa; }
-  .res-time { color: #525252; font-size: 0.75rem; margin-left: 0.5rem; }
+  .res-ok { background: #e6f4ea; color: #137333; }
+  .res-err { background: #fce8e6; color: #c5221f; }
+  .res-time { color: #5f6368; font-size: 0.75rem; margin-left: 8px; }
   .res-headers-toggle {
-    color: #525252; font-size: 0.75rem; cursor: pointer;
-    margin-bottom: 0.4rem; display: block;
+    color: #5f6368;
+    font-size: 0.75rem;
+    cursor: pointer;
+    margin-bottom: 6px;
+    display: block;
   }
-  .res-headers-toggle:hover { color: #737373; }
+  .res-headers-toggle:hover { color: #202124; }
   .res-label {
-    color: #737373; font-size: 0.75rem;
-    text-transform: uppercase; letter-spacing: 0.05em;
-    margin: 0.5rem 0 0.25rem;
+    color: #5f6368;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 8px 0 4px;
+    font-weight: 600;
   }
   pre.res-body {
-    padding: 0.5rem 0.75rem;
-    background: #0a0a0a; border: 1px solid #262626; border-radius: 4px;
-    font-size: 0.8rem; overflow-x: auto; color: #a3a3a3;
-    white-space: pre-wrap; word-break: break-word;
+    padding: 10px 12px;
+    background: #fff;
+    border: 1px solid #e0e3e7;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    color: #3c4043;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   }
 </style>
 </head>
 <body>
   <h1>MockIt Dashboard</h1>
-  <p class="subtitle">Registered mock endpoints</p>
+  <p class="subtitle">Registered mock endpoints and quick request checks.</p>
   <div class="stats">
     <span class="stat"><strong>${mocks.length}</strong> mocks</span>
     <span class="stat"><strong>${overrides.length}</strong> overrides</span>
