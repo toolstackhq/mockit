@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: "MockIt"
-  text: "First-Class REST API Mocking Library"
-  tagline: "Run a mock server or intercept fetch in-process, then define mocks in code, TypeScript config, or OpenAPI."
+  text: "REST API Mocking For JS And TS"
+  tagline: "Run a real mock server, intercept outbound HTTP inside Node, or update a running mock from tests."
   actions:
     - theme: brand
       text: Installation
@@ -15,11 +15,11 @@ hero:
 
 features:
   - title: What It Is
-    details: A mock library for REST services, built for JS/TS projects that need deterministic API behavior.
-  - title: Two Runtimes
-    details: Use MockServer for real HTTP endpoints and HttpInterceptor for in-process Node fetch tests.
-  - title: Two Config Sources
+    details: A mock library for REST services built for frontend teams, test automation, and backend service tests.
+  - title: Choose The Runtime
+    details: Use MockServer for real HTTP endpoints, HttpInterceptor for in-process Node HTTP calls, and RemoteMockServer to update a running mock.
+  - title: Configure From Code Or Spec
     details: Load shared defaults from TypeScript or bootstrap mocks from OpenAPI.
-  - title: Expectation API
-    details: Match method, headers, cookies, query, and body, then define status, body, delays, templates, faults, and sequential replies.
+  - title: Define Behavior Clearly
+    details: Match method, headers, cookies, query, and body, then return status, body, delays, templates, faults, and sequential replies.
 ---

@@ -2,16 +2,26 @@
 
 ## What It Is
 
-`HttpInterceptor` does not start a server. It intercepts outgoing HTTP calls inside the current Node process.
+`HttpInterceptor` does not start a server.
 
-Simple idea:
+It intercepts outbound HTTP calls inside the current Node process and returns mocked responses before those calls leave the process.
 
-- your code calls `fetch(...)`, `http.request(...)`, `https.request(...)`, or a Node client built on top of them
-- MockIt stands in front of that call
-- if the request matches a mock, MockIt returns fake data
+Use it when:
+
+- the code under test already runs in Node
+- you do not want to manage a mock server port
+- you want to mock Axios, `fetch`, `http`, or `https` without changing the code to point to a different base URL
+
+Simple mental model:
+
+- your code tries to call a real API
+- MockIt catches that call inside the process
+- if the request matches a mock, MockIt returns the fake response
 - the real network call does not happen
 
-When MockIt says it intercepts in-process traffic, it patches:
+## What It Intercepts
+
+MockIt patches these Node APIs:
 
 ```ts
 globalThis.fetch
@@ -19,20 +29,37 @@ http.request
 https.request
 ```
 
-That is the same function your code uses here:
+That covers common Node-side clients such as:
+
+- `fetch`
+- Axios in Node
+- libraries built on Node `http` or `https`
+
+Example:
 
 ```ts
 await fetch('https://api.example.com/users');
+await axios.get('https://api.example.com/users');
 ```
 
 After `interceptor.enable()`, MockIt temporarily replaces those request functions with its own wrappers.
 
-Best for:
+## When To Use It
 
-- Vitest or Jest service tests
-- Node-side integration tests
-- component tests that run in Node
-- Axios-based tests in Node
+Use `HttpInterceptor` for:
+
+- backend service tests
+- SDK or API client tests in Node
+- retry, timeout, and error-path testing
+- Node integration tests that call real-looking external URLs
+
+Do not use it for:
+
+- browser traffic from a real Playwright or Cypress page
+- local frontend development where the app needs a real API URL
+- cross-process testing
+
+For those cases, use `MockServer`.
 
 ## Features
 
@@ -42,6 +69,19 @@ Best for:
 - records matched and unmatched requests in the same journal APIs
 - matches by request path, not by base URL or hostname
 - covers Node clients built on `http` / `https`, including Axios in Node
+
+## Why Not Just Use MockServer
+
+`MockServer` is the right choice when the caller needs a real URL.
+
+`HttpInterceptor` is the right choice when the caller is already running in the same Node process.
+
+Example:
+
+- browser test hitting a local app: use `MockServer`
+- service test calling `axios.get('https://payments.internal/users')`: use `HttpInterceptor`
+
+The benefit is that your application code can keep using the real outbound URL shape in tests.
 
 ## Configure
 
@@ -60,6 +100,7 @@ await interceptor.loadSwagger('./openapi.yaml');
 ## Usage
 
 ```ts
+import axios from 'axios';
 import { HttpInterceptor } from '@toolstackhq/mockit';
 
 const interceptor = new HttpInterceptor({ onUnhandled: 'fail' });
@@ -71,8 +112,8 @@ interceptor.expect('/api/users')
 
 interceptor.enable();
 
-const res = await fetch('http://localhost/api/users');
-console.log(await res.json());
+const res = await axios.get('https://api.example.com/api/users');
+console.log(res.data);
 
 interceptor.disable();
 ```
@@ -149,28 +190,10 @@ Built-in matchers:
 - use `MockServer` instead if a browser or another process must hit the mock
 - it is not a standalone process runtime
 
-## What It Covers
-
-Use `HttpInterceptor` for code that calls:
-
-```ts
-await fetch(...)
-http.request(...)
-https.request(...)
-```
-
-So:
-
-- `fetch` in the same Node process: yes
-- `http` / `https` in the same Node process: yes
-- Axios in Node: yes
-- browser traffic from Playwright or Cypress pages: no
-
-If you need to mock Axios or browser traffic, use `MockServer` instead.
-
 ## Sample
 
 ```ts
+import axios from 'axios';
 import { HttpInterceptor } from '@toolstackhq/mockit';
 
 const interceptor = new HttpInterceptor({ onUnhandled: 'fail' });
@@ -184,7 +207,8 @@ interceptor.expect('/api/profile')
   .thenReply(200)
   .withBody({ id: 1, name: 'Jane' });
 
-// app code calls fetch('/api/profile')
+const response = await axios.get('https://users.internal/api/profile');
+console.log(response.data);
 
 interceptor.disable();
 ```

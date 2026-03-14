@@ -15,7 +15,7 @@ test('serves defaults and swagger mocks and falls back after reset', async ({ re
 
   const swaggerPets = await request.get(`${mockServer.address}/pets`);
   expect(swaggerPets.status()).toBe(200);
-  expect(await swaggerPets.json()).toEqual([{ id: 1, name: 'Buddy', tag: 'string' }]);
+  expect(await swaggerPets.json()).toEqual([{ id: 1, name: 'Buddy', tag: 'default-tag' }]);
 
   await remoteMock.expect('/api/users')
     .method('GET')

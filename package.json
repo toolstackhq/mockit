@@ -1,7 +1,7 @@
 {
   "name": "@toolstackhq/mockit",
   "version": "1.0.9",
-  "description": "Enterprise REST/gRPC mocking library for banking microservices",
+  "description": "REST API mocking for JavaScript and TypeScript projects",
   "license": "MIT",
   "repository": {
     "type": "git",

@@ -2,7 +2,9 @@
 
 ## What It Is
 
-`MockServer` starts a real HTTP server. Use it when your app, browser, or another process must call a real mock endpoint.
+`MockServer` starts a real HTTP server.
+
+Use it when your app, browser, or another process must call a real mock endpoint like `http://127.0.0.1:3001`.
 
 It can run:
 
@@ -14,14 +16,28 @@ It also includes a built-in dashboard at `/_mockit` for viewing loaded mocks and
 
 Best for:
 
+- manual testing and QA
 - Playwright or Cypress tests
 - frontend development against a fake backend
 - cross-process integration tests
 
-You can use it in two ways:
+## When To Use It
+
+Use `MockServer` when:
+
+- a browser must call the mock
+- a UI dev server must call the mock
+- an SDK, CLI, or another process must call the mock
+- you want a mock that can stay up even when a test is not running
+
+Use `HttpInterceptor` instead when the code under test is already in the same Node process and does not need a real port.
+
+## How You Run It
+
+You can run it in three ways:
 
 - from code with `new MockServer(...)`
-- from the CLI with `mockit serve ...`
+- from the CLI with `npx @toolstackhq/mockit serve ...`
 - from external tests with `new RemoteMockServer('http://127.0.0.1:3001')`
 
 ## Why Run It Standalone

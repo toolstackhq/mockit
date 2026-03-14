@@ -10,12 +10,18 @@
 [![Release](https://img.shields.io/github/v/release/toolstackhq/mockit?sort=semver)](https://github.com/toolstackhq/mockit/releases)
 [![Last Commit](https://img.shields.io/github/last-commit/toolstackhq/mockit)](https://github.com/toolstackhq/mockit/commits/main)
 
-MockIt is a TypeScript REST API mocking library for local development and testing.
+MockIt is a REST API mocking library for JavaScript and TypeScript.
+
+It supports three runtime patterns:
+
+- `MockServer`: run a real mock API on a local port
+- `HttpInterceptor`: intercept outbound HTTP in the current Node process
+- `RemoteMockServer`: change a running `MockServer` from tests or scripts
 
 | Feature | Use case |
 | --- | --- |
-| `MockServer` | Run a real mock API server for frontend dev, browser automation, or cross-process testing. |
-| `HttpInterceptor` | Intercept `fetch`, `http`, `https`, and Axios in the current Node process for unit and integration tests. |
+| `MockServer` | Run a real mock API server for frontend development, browser automation, or any other process that needs a URL to call. |
+| `HttpInterceptor` | Intercept `fetch`, `http`, `https`, and Axios inside the current Node process without starting a server. |
 | `RemoteMockServer` | Update a running standalone mock from Playwright, API tests, or external scripts. |
 | TypeScript defaults | Load reusable default mocks from a typed config file. |
 | OpenAPI / Swagger loading | Generate mock endpoints and sample responses from an API spec. |
@@ -31,6 +37,27 @@ Install:
 npm install @toolstackhq/mockit
 ```
 
+## Choose A Runtime
+
+Use `MockServer` when:
+
+- a browser, UI, or another process must call a real HTTP endpoint
+- you want a mock to stay running outside a test process
+- manual testers or QA automation need a stable fake backend
+
+Use `HttpInterceptor` when:
+
+- the code under test already runs in Node
+- you want to fake outbound HTTP without starting a server
+- your Node code uses `fetch`, Axios, `http`, or `https`
+
+Use `RemoteMockServer` when:
+
+- `MockServer` is already running
+- the test should change mock behavior without starting the server itself
+
+## Quick Start
+
 Create a TypeScript config:
 
 ```bash
@@ -41,10 +68,22 @@ In a terminal, `init` can either:
 - write the default starter config
 - ask a few questions and generate endpoints for you
 
-Simple TypeScript usage:
+Start a standalone mock:
+
+```bash
+npx @toolstackhq/mockit serve --config ./mockit.config.ts --port 3001
+```
+
+The dashboard is available at:
+
+```txt
+http://127.0.0.1:3001/_mockit
+```
+
+## TypeScript Config Example
 
 ```ts
-import { MockServer, defineConfig } from '@toolstackhq/mockit';
+import { defineConfig } from '@toolstackhq/mockit';
 
 export default defineConfig([
   {
@@ -58,24 +97,32 @@ export default defineConfig([
 ]);
 ```
 
+## In-Process Interceptor Example
+
+Use `HttpInterceptor` when your code already runs in Node and you do not want to start a mock server.
+
 ```ts
-import { MockServer } from '@toolstackhq/mockit';
+import axios from 'axios';
+import { HttpInterceptor } from '@toolstackhq/mockit';
 
-const server = new MockServer({ port: 3001 });
-await server.loadDefaults('./mockit.config.ts');
+const interceptor = new HttpInterceptor({ onUnhandled: 'fail' });
 
-await server.start();
+interceptor.expect('/api/users')
+  .method('GET')
+  .returns(200)
+  .withBody([{ id: 1, name: 'Jane Doe' }]);
 
-console.log(server.address); // http://127.0.0.1:3001
+interceptor.enable();
+
+const response = await axios.get('https://api.example.com/api/users');
+console.log(response.data);
+
+interceptor.disable();
 ```
 
-Dashboard:
+The request still looks like a real outbound HTTP call, but MockIt returns the response inside the same Node process.
 
-```txt
-http://127.0.0.1:3001/_mockit
-```
-
-Run a standalone mock from a project script:
+## npm Script
 
 ```json
 {

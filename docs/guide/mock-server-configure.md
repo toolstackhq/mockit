@@ -89,5 +89,5 @@ So yes, Swagger mocks are intended to return usable sample data, not just blank 
 CLI:
 
 ```bash
-mockit serve --config ./mock-config.ts --swagger ./openapi.yaml --port 3001
+npx @toolstackhq/mockit serve --config ./mockit.config.ts --swagger ./openapi.yaml --port 3001
 ```

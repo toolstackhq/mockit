@@ -27,7 +27,7 @@ import {
   MockServer,
   HttpInterceptor,
   RemoteMockServer,
-  defineDefaults,
+  defineConfig,
   equals,
   equalsJson,
   startsWith,

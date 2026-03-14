@@ -22,7 +22,7 @@ const res = await fetch('http://127.0.0.1:3001/api/users');
 ## Start Standalone From CLI
 
 ```bash
-mockit serve --config ./mock-config.ts --swagger ./openapi.yaml --port 3001 --host 127.0.0.1
+npx @toolstackhq/mockit serve --config ./mockit.config.ts --swagger ./openapi.yaml --port 3001 --host 127.0.0.1
 ```
 
 This starts the same `MockServer` runtime as a standalone process.
@@ -49,7 +49,7 @@ The generated file is:
 Then start it with:
 
 ```bash
-mockit serve --config ./mockit.config.ts --port 3001
+npx @toolstackhq/mockit serve --config ./mockit.config.ts --port 3001
 ```
 
 Dashboard:
@@ -97,7 +97,7 @@ If a project installs `@toolstackhq/mockit`, it can expose the CLI through an np
 ```json
 {
   "scripts": {
-    "mockit": "mockit serve --config ./mock-config.ts --port 3001"
+    "mockit": "mockit serve --config ./mockit.config.ts --port 3001"
   }
 }
 ```
