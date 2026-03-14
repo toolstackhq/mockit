@@ -66,7 +66,10 @@ export async function runServe(args: string[]): Promise<void> {
   }
 
   const address = await server.start();
-  console.log(`MockIt server running at http://${address.host}:${address.port}`);
+  const serverUrl = `http://${address.host}:${address.port}`;
+  const dashboardUrl = buildDashboardUrl(address.host, address.port);
+  console.log(`MockIt server running at ${serverUrl}`);
+  console.log(`MockIt UI available at ${dashboardUrl}`);
   if (options.configPath) {
     console.log(`Loaded config: ${options.configPath}`);
   }
@@ -93,6 +96,11 @@ export function helpText(): string {
     '  mockit serve --config ./mock-config.ts --swagger ./openapi.yaml --port 3001',
     '  mockit serve --swagger ./openapi.yaml --host 0.0.0.0 --port 3001',
   ].join('\n');
+}
+
+export function buildDashboardUrl(host: string, port: number): string {
+  const browserHost = host === '0.0.0.0' ? '127.0.0.1' : host;
+  return `http://${browserHost}:${port}/_mockit`;
 }
 
 function requireValue(flag: string, value: string | undefined): string {

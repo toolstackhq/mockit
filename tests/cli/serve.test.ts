@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { resolve } from 'node:path';
-import { helpText, parseServeArgs } from '../../src/cli/serve.js';
+import { buildDashboardUrl, helpText, parseServeArgs } from '../../src/cli/serve.js';
 
 describe('CLI serve parser', () => {
   it('parses positional config paths', () => {
@@ -40,5 +40,10 @@ describe('CLI serve parser', () => {
   it('returns help text', () => {
     expect(helpText()).toContain('mockit serve');
     expect(helpText()).toContain('--swagger');
+  });
+
+  it('builds a dashboard url for local access', () => {
+    expect(buildDashboardUrl('127.0.0.1', 3001)).toBe('http://127.0.0.1:3001/_mockit');
+    expect(buildDashboardUrl('0.0.0.0', 3001)).toBe('http://127.0.0.1:3001/_mockit');
   });
 });
