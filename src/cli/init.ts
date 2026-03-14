@@ -121,7 +121,7 @@ async function resolveInitTemplate(
         return starterConfigTemplate();
       }
 
-      return guidedConfigTemplate(prompt);
+      return await guidedConfigTemplate(prompt);
     } finally {
       prompt.close();
     }

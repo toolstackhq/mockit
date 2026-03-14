@@ -58,15 +58,23 @@ describe('CLI init', () => {
       'n',
     ];
 
+    let closed = false;
+
     await runInit([outputPath, '--interactive'], () => ({
       async ask() {
+        if (closed) {
+          throw new Error('Prompt closed too early');
+        }
+
         const answer = answers.shift();
         if (answer === undefined) {
           throw new Error('No answer left for prompt');
         }
         return answer;
       },
-      close() {},
+      close() {
+        closed = true;
+      },
     }));
 
     const content = await readFile(outputPath, 'utf-8');
@@ -77,5 +85,6 @@ describe('CLI init', () => {
     expect(content).toContain('"content-type": "application/json"');
     expect(content).toContain('path: "/api/login"');
     expect(content).toContain('status: 401');
+    expect(closed).toBe(true);
   });
 });
