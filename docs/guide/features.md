@@ -7,6 +7,17 @@ MockIt has two major features:
 
 `MockServer` can also be controlled remotely with `RemoteMockServer` when the mock is already running as a separate process.
 
+| Feature | Use case |
+| --- | --- |
+| `MockServer` | Run a real mock API server for browser tests, frontend dev, and shared local stacks. |
+| `HttpInterceptor` | Intercept `fetch` inside the current Node process without starting a server. |
+| `RemoteMockServer` | Change a running standalone mock from a test or external script. |
+| TypeScript defaults | Keep reusable default mock definitions in a typed config file. |
+| OpenAPI / Swagger loading | Generate endpoints and sample responses directly from an API spec. |
+| Request matching | Match method, headers, cookies, query, bearer token, and JSON body. |
+| Response control | Return delays, templates, faults, sequences, and finite-use responses. |
+| Dashboard and admin APIs | Inspect loaded mocks, history, unmatched requests, and pending mocks. |
+
 ## Ways To Run MockIt
 
 In-memory mock:

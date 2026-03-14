@@ -12,10 +12,16 @@
 
 MockIt is a TypeScript REST API mocking library for local development and testing.
 
-It supports two runtimes:
-
-- `MockServer` for a real HTTP mock server
-- `HttpInterceptor` for in-process `fetch` interception in Node tests
+| Feature | Use case |
+| --- | --- |
+| `MockServer` | Run a real mock API server for frontend dev, browser automation, or cross-process testing. |
+| `HttpInterceptor` | Intercept `fetch` in the current Node process for unit and integration tests. |
+| `RemoteMockServer` | Update a running standalone mock from Playwright, API tests, or external scripts. |
+| TypeScript defaults | Load reusable default mocks from a typed config file. |
+| OpenAPI / Swagger loading | Generate mock endpoints and sample responses from an API spec. |
+| Request matching | Match by method, headers, cookies, query, bearer token, and body. |
+| Response control | Return delays, templates, faults, sequences, and limited-use responses. |
+| Dashboard and admin APIs | Inspect mocks, requests, unmatched calls, and pending expectations. |
 
 Live docs: https://toolstackhq.github.io/mockit/
 
