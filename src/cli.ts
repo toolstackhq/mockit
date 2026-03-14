@@ -1,33 +1,58 @@
 #!/usr/bin/env node
 
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { initHelpText, runInit } from './cli/init.js';
 import { helpText, runServe } from './cli/serve.js';
 
-async function main(): Promise<void> {
-  const [, , command, ...args] = process.argv;
+export interface CliDeps {
+  runServe: typeof runServe;
+  runInit: typeof runInit;
+  log: (message: string) => void;
+  error: (message: string) => void;
+  exit: (code: number) => void;
+}
+
+export async function runCli(argv: string[], deps: CliDeps = defaultCliDeps()): Promise<void> {
+  const [, , command, ...args] = argv;
 
   if (!command || command === '--help' || command === '-h') {
-    console.log(rootHelpText());
+    deps.log(rootHelpText());
     return;
   }
 
   if (command === 'serve') {
-    await runServe(args);
+    await deps.runServe(args);
     return;
   }
 
   if (command === 'init') {
-    await runInit(args);
+    await deps.runInit(args);
     return;
   }
 
   throw new Error(`Unknown command: ${command}\n\n${rootHelpText()}`);
 }
 
-main().catch((error) => {
-  console.error(String(error instanceof Error ? error.message : error));
-  process.exit(1);
-});
+export async function main(): Promise<void> {
+  try {
+    await runCli(process.argv);
+  } catch (error) {
+    const deps = defaultCliDeps();
+    deps.error(String(error instanceof Error ? error.message : error));
+    deps.exit(1);
+  }
+}
+
+function defaultCliDeps(): CliDeps {
+  return {
+    runServe,
+    runInit,
+    log: console.log,
+    error: console.error,
+    exit: process.exit,
+  };
+}
 
 function rootHelpText(): string {
   return [
@@ -42,4 +67,16 @@ function rootHelpText(): string {
     '',
     initHelpText(),
   ].join('\n');
+}
+
+function isEntrypoint(moduleUrl: string, entryArg: string | undefined): boolean {
+  if (!entryArg) {
+    return false;
+  }
+
+  return moduleUrl === pathToFileURL(resolve(entryArg)).href;
+}
+
+if (isEntrypoint(import.meta.url, process.argv[1])) {
+  void main();
 }

@@ -45,6 +45,15 @@ describe('Config Loader', () => {
     expect(defs[1].response.template).toBe(true);
   });
 
+  it('loads JavaScript configs with query and body matchers', async () => {
+    const defs = await loadConfig(`${fixtureDir}/test-config.js`);
+    const def = defs[0];
+
+    expect(def.queryMatchers.get('page')?.match('1')).toBe(true);
+    expect(def.bodyMatchers[0].jsonPath).toBe('$.role');
+    expect(def.bodyMatchers[0].matcher.match('admin')).toBe(true);
+  });
+
   it('throws for non-existent config', async () => {
     await expect(loadConfig('/nonexistent/config.ts')).rejects.toThrow();
   });

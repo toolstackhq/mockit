@@ -23,6 +23,7 @@ describe('CLI init', () => {
     expect(parseInitArgs(['--default']).mode).toBe('default');
     expect(initHelpText()).toContain('mockit init');
     expect(() => parseInitArgs(['--wat'])).toThrow(/Unknown argument/i);
+    expect(() => parseInitArgs(['--output'])).toThrow(/Missing value/i);
   });
 
   it('creates a starter config file', async () => {
@@ -93,5 +94,30 @@ describe('CLI init', () => {
     expect(content).toContain('path: "/api/login"');
     expect(content).toContain('status: 401');
     expect(closed).toBe(true);
+  });
+
+  it('rejects non-object header json in guided mode', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'mockit-init-guided-invalid-'));
+    tempDirs.push(dir);
+    const outputPath = join(dir, 'mockit.config.ts');
+
+    const answers = [
+      '/api/balance',
+      'GET',
+      '200',
+      '{"balance":200}',
+      '[]',
+    ];
+
+    await expect(runInit([outputPath, '--interactive'], () => ({
+      async ask() {
+        const answer = answers.shift();
+        if (answer === undefined) {
+          throw new Error('No answer left for prompt');
+        }
+        return answer;
+      },
+      close() {},
+    }))).rejects.toThrow(/Invalid headers JSON/);
   });
 });

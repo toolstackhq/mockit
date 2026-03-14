@@ -8,6 +8,20 @@ export interface ServeOptions {
   host: string;
 }
 
+interface ServerLike {
+  address: string;
+  loadDefaults(configPath: string): Promise<void>;
+  loadSwagger(swaggerPath: string): Promise<void>;
+  start(): Promise<{ host: string; port: number }>;
+  stop(): Promise<void>;
+}
+
+export interface ServeDeps {
+  createServer: (options: { port: number; host: string }) => ServerLike;
+  log: (message: string) => void;
+  onSignal: (signal: NodeJS.Signals, listener: () => void) => void;
+}
+
 export function parseServeArgs(args: string[]): ServeOptions {
   let configPath: string | undefined;
   let swaggerPath: string | undefined;
@@ -53,9 +67,9 @@ export function parseServeArgs(args: string[]): ServeOptions {
   };
 }
 
-export async function runServe(args: string[]): Promise<void> {
+export async function runServe(args: string[], deps: ServeDeps = defaultServeDeps()): Promise<void> {
   const options = parseServeArgs(args);
-  const server = new MockServer({ port: options.port, host: options.host });
+  const server = deps.createServer({ port: options.port, host: options.host });
 
   if (options.configPath) {
     await server.loadDefaults(options.configPath);
@@ -68,13 +82,13 @@ export async function runServe(args: string[]): Promise<void> {
   const address = await server.start();
   const serverUrl = `http://${address.host}:${address.port}`;
   const dashboardUrl = buildDashboardUrl(address.host, address.port);
-  console.log(`MockIt server running at ${serverUrl}`);
-  console.log(`MockIt UI available at ${dashboardUrl}`);
+  deps.log(`MockIt server running at ${serverUrl}`);
+  deps.log(`MockIt UI available at ${dashboardUrl}`);
   if (options.configPath) {
-    console.log(`Loaded config: ${options.configPath}`);
+    deps.log(`Loaded config: ${options.configPath}`);
   }
   if (options.swaggerPath) {
-    console.log(`Loaded swagger: ${options.swaggerPath}`);
+    deps.log(`Loaded swagger: ${options.swaggerPath}`);
   }
 
   const shutdown = async () => {
@@ -82,8 +96,8 @@ export async function runServe(args: string[]): Promise<void> {
     process.exit(0);
   };
 
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
+  deps.onSignal('SIGINT', shutdown);
+  deps.onSignal('SIGTERM', shutdown);
 }
 
 export function helpText(): string {
@@ -101,6 +115,16 @@ export function helpText(): string {
 export function buildDashboardUrl(host: string, port: number): string {
   const browserHost = host === '0.0.0.0' ? '127.0.0.1' : host;
   return `http://${browserHost}:${port}/_mockit`;
+}
+
+function defaultServeDeps(): ServeDeps {
+  return {
+    createServer: (options) => new MockServer(options),
+    log: console.log,
+    onSignal: (signal, listener) => {
+      process.on(signal, listener);
+    },
+  };
 }
 
 function requireValue(flag: string, value: string | undefined): string {
